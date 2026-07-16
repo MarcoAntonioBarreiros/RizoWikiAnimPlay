@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visualizador — Beans Microbe Lab</title>
+<style>
+:root {
+  --bg: #06110d;
+  --panel: #0b1c17e8;
+  --text: #f2fff8;
+  --muted: #a8c8b9;
+  --green: #89efb1;
+}
+* { box-sizing: border-box; }
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  overflow: hidden;
+}
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 24px;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.overlay.idle {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.nav-group {
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: #ffffff14;
+  border: 1px solid #ffffff24;
+  border-radius: 12px;
+  color: #d7f7e8;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: 0.2s;
+  user-select: none;
+}
+.btn:hover {
+  background: #ffffff24;
+  transform: translateY(-1px);
+}
+.btn svg {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  fill: currentColor;
+}
+.btn.icon-only {
+  padding: 8px;
+}
+.btn.icon-only svg {
+  margin: 0;
+}
+.btn.primary {
+  background: #89efb122;
+  border-color: #89efb144;
+  color: #89efb1;
+}
+.btn.primary:hover {
+  background: #89efb133;
+}
+@media(max-width: 600px) {
+  .overlay { padding: 12px; }
+  .btn { font-size: 11px; padding: 6px 12px; }
+  .nav-group { gap: 6px; }
+}
+</style>
+</head>
+<body>
+
+<iframe id="frame"></iframe>
+
+<div id="overlay" class="overlay">
+  <div class="nav-group">
+    <a href="index.html" class="btn">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      Biblioteca
+    </a>
+  </div>
+  <div class="nav-group">
+    <button id="prevBtn" class="btn icon-only" aria-label="Anterior">
+      <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </button>
+    <button id="nextBtn" class="btn icon-only" aria-label="Próximo">
+      <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </button>
+    <button id="fullscreenBtn" class="btn primary">
+      <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+      Tela Inteira
+    </button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {id:"micorriza", file:"micorriza_procedural.html"},
+  {id:"rhizobium", file:"rhizobium_procedural.html"},
+  {id:"oportunista", file:"fungo_oportunista_lesoes_v2.html"},
+  {id:"pgpb-p", file:"pgpb_solubilizadora_procedural.html"},
+  {id:"trichoderma", file:"trichoderma_procedural.html"},
+  {id:"azospirillum", file:"azospirillum_procedural.html"},
+  {id:"bacillus", file:"bacillus_procedural.html"},
+  {id:"pseudomonas", file:"pseudomonas_sideroforo_morfologia_v2.html"}
+];
+
+let currentIndex = 0;
+const frame = document.getElementById('frame');
+const overlay = document.getElementById('overlay');
+let idleTimeout;
+
+function resetIdle() {
+  overlay.classList.remove('idle');
+  clearTimeout(idleTimeout);
+  idleTimeout = setTimeout(() => {
+    overlay.classList.add('idle');
+  }, 3000);
+}
+
+// Track interactions to show/hide overlay
+window.addEventListener('mousemove', resetIdle);
+window.addEventListener('touchstart', resetIdle);
+window.addEventListener('keydown', resetIdle);
+
+function loadAnim(index) {
+  currentIndex = (index + DATA.length) % DATA.length;
+  const anim = DATA[currentIndex];
+  frame.src = anim.file;
+  
+  // Update URL to allow sharing
+  const url = new URL(window.location);
+  url.searchParams.set('id', anim.id);
+  window.history.replaceState({}, '', url);
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => loadAnim(currentIndex - 1));
+document.getElementById('nextBtn').addEventListener('click', () => loadAnim(currentIndex + 1));
+
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.warn("Fullscreen error", err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+// Update fullscreen icon based on state
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.getElementById('fullscreenBtn');
+  if (document.fullscreenElement) {
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg> Sair`;
+  } else {
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg> Tela Inteira`;
+  }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if(e.key === "ArrowLeft") loadAnim(currentIndex - 1);
+  if(e.key === "ArrowRight") loadAnim(currentIndex + 1);
+});
+
+// Init
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
+const startIdx = DATA.findIndex(d => d.id === id);
+loadAnim(startIdx !== -1 ? startIdx : 0);
+resetIdle();
+</script>
+</body>
+</html>
