@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Fungo oportunista procedural — Beans for a Living Soil</title>
+<style>
+:root{
+  --bg:#10090a;--panel:#1a0e11e8;--line:#ffd0d51a;--text:#fff5f6;
+  --muted:#d1aeb4;--accent:#ff8f9f;--orange:#ffb267;--violet:#c694ff;--green:#7ee0a7
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body{
+  background:
+  radial-gradient(circle at 15% 18%,#7d293533,transparent 27%),
+  radial-gradient(circle at 83% 12%,#b8673423,transparent 24%),
+  linear-gradient(145deg,#12090b,#1a0d10 54%,#0b0708)
+}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.stage,.panel{
+  border:1px solid var(--line);border-radius:24px;
+  background:linear-gradient(160deg,#251316ef,#0d090aef);
+  box-shadow:0 24px 80px #0008,inset 0 1px 0 #fff0c
+}
+.stage{position:relative;min-width:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;z-index:3;left:22px;top:18px;pointer-events:none;text-shadow:0 3px 20px #0009}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.back-btn{pointer-events:auto;display:inline-flex;align-items:center;margin-bottom:12px;padding:6px 12px;background:#ffffff14;border:1px solid #ffffff24;border-radius:8px;color:#d7f7e8;font-size:11px;text-decoration:none;font-weight:600;backdrop-filter:blur(4px);transition:.2s}.back-btn:hover{background:#ffffff24;transform:translateY(-1px)}
+h1{font-size:clamp(25px,4vw,48px);line-height:.95;letter-spacing:-.045em;margin:7px 0}
+.sub{max-width:540px;font-size:13px;line-height:1.45;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.badge,.hint{border:1px solid #ffffff16;background:#160b0dcc;backdrop-filter:blur(8px)}
+.badge{padding:6px 9px;border-radius:999px;font-size:10px}
+.hint{position:absolute;left:20px;bottom:18px;z-index:3;padding:9px 12px;border-radius:999px;font-size:11px;color:#f6dfe3}
+.legend{position:absolute;right:16px;bottom:16px;z-index:3;display:grid;gap:5px;padding:9px 11px;border-radius:13px;background:#160b0dcc;border:1px solid #fff17}
+.legend div{font-size:10px;color:#ebcdd3;display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 13px currentColor}
+.panel{padding:18px;overflow:auto}
+.sec{padding:14px 0;border-bottom:1px solid #ffffff10}.sec:first-child{padding-top:0}.sec:last-child{border-bottom:0}
+h2{font-size:13px;margin:0 0 12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{
+  border:1px solid #ffffff16;border-radius:12px;padding:10px 12px;background:#ffffff0c;
+  color:var(--text);font:inherit;font-weight:750;cursor:pointer;transition:.18s
+}
+button:hover{transform:translateY(-1px);background:#ffffff15}
+.primary{background:linear-gradient(135deg,#ff9cac,#d85d72);color:#2a090f;border-color:transparent}
+.wide{grid-column:1/-1}
+.control{margin:12px 0}
+.control label{display:flex;justify-content:space-between;font-size:12px;color:#ebcbd1;margin-bottom:7px}
+.value{font-weight:800;color:var(--accent)}
+input[type=range]{width:100%;accent-color:#e86f82}
+.toggle{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#ebcbd1;padding:9px 10px;margin:7px 0;border-radius:11px;background:#ffffff07}
+.switch{position:relative;width:40px;height:23px}.switch input{opacity:0}
+.slider{position:absolute;inset:0;border-radius:99px;background:#3f252a}
+.slider:before{content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+.slider{background:#d85d72}.switch input:checked+.slider:before{transform:translateX(17px)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px;border:1px solid #ffffff0c;border-radius:12px;background:#ffffff07}
+.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
+.note{font-size:11px;line-height:1.5;color:var(--muted)}.note strong{color:#fff2f4}
+.pills{margin-top:8px}.pill{display:inline-block;margin:3px 3px 0 0;padding:5px 8px;border-radius:999px;border:1px solid #ff9cac22;background:#ff9cac0e;font-size:10px;color:#f6dfe3}
+@media(max-width:900px){
+  body{overflow:auto}#app{height:auto;min-height:100%;grid-template-columns:1fr;padding:10px}
+  .stage{display:flex;flex-direction:column;height:82vh;min-height:600px}canvas{flex:1;min-height:400px}
+  .brand{position:relative;left:0;top:0;padding:18px 18px 22px;background:#1a0e11e8;border-bottom:1px solid var(--line);order:-1;pointer-events:auto}
+  .panel{overflow:visible}
+}
+@media(max-width:560px){
+  .stage,.panel{border-radius:18px}.stage{height:88vh;min-height:550px}
+  .brand{padding:15px 15px 18px}.sub{max-width:none}
+  .hint{left:13px;bottom:13px;max-width:75%;white-space:normal;border-radius:12px}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="stage">
+<canvas id="scene" aria-label="Visualização procedural de fungo radicular oportunista"></canvas>
+<div class="brand">
+  <a href="index.html" class="back-btn">← Voltar para a biblioteca</a>
+  <div class="eyebrow">Beans for a Living Soil · Microbe Lab</div>
+  <h1>Oportunista procedural</h1>
+  <div class="sub">Colônia fúngica estilizada cujas pontas detectam as lesões, convergem para elas e só então formam focos densos de colonização e esporulação.</div>
+  <div class="badges">
+    <span class="badge">hifas articuladas</span>
+    <span class="badge">crescimento invasivo</span>
+    <span class="badge">esporulação</span>
+    <span class="badge">lesão radicular</span>
+  </div>
+</div>
+<div class="hint">Clique ou toque na raiz para criar uma nova região lesionada.</div>
+<div class="legend">
+  <div><span class="dot" style="color:#ff8f9f;background:#ff8f9f"></span>Hifas invasivas</div>
+  <div><span class="dot" style="color:#ffb267;background:#ffb267"></span>Região lesionada</div>
+  <div><span class="dot" style="color:#c694ff;background:#c694ff"></span>Esporos</div>
+</div>
+</main>
+
+<aside class="panel">
+<div class="sec">
+  <h2>Controle</h2>
+  <div class="buttons">
+    <button id="toggle" class="primary">Pausar</button>
+    <button id="reset">Nova colônia</button>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comportamento procedural</h2>
+  <div class="control">
+    <label>Velocidade de crescimento <span id="growthV" class="value">1.0×</span></label>
+    <input id="growth" type="range" min=".25" max="2.2" value="1" step=".05">
+  </div>
+  <div class="control">
+    <label>Densidade de ramificação <span id="branchV" class="value">68%</span></label>
+    <input id="branch" type="range" min="5" max="95" value="68" step="1">
+  </div>
+  <div class="control">
+    <label>Agressividade de invasão <span id="aggrV" class="value">74%</span></label>
+    <input id="aggr" type="range" min="0" max="100" value="74" step="1">
+  </div>
+  <div class="control">
+    <label>Esporulação <span id="sporeV" class="value">56%</span></label>
+    <input id="spore" type="range" min="0" max="100" value="56" step="1">
+  </div>
+  <div class="control">
+    <label>Movimento orgânico <span id="organicV" class="value">78%</span></label>
+    <input id="organic" type="range" min="0" max="100" value="78" step="1">
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Camadas</h2>
+  <div class="toggle">Septos das hifas
+    <label class="switch"><input id="septa" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Halo de secreção
+    <label class="switch"><input id="halo" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Partículas do solo
+    <label class="switch"><input id="soil" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Resposta da raiz
+    <label class="switch"><input id="response" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Colônia em tempo real</h2>
+  <div class="stats">
+    <div class="stat"><b id="tips">0</b><span>pontas ativas</span></div>
+    <div class="stat"><b id="segments">0</b><span>segmentos hifais</span></div>
+    <div class="stat"><b id="spores">0</b><span>esporos</span></div>
+    <div class="stat"><b id="lesions">0/0</b><span>lesões colonizadas</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Leitura biológica</h2>
+  <div class="note">
+    <strong>O que está sendo representado:</strong> as pontas hifais são orientadas pelas regiões lesionadas. A rede permanece esparsa durante a busca, mas ramifica, invade e esporula intensamente somente após alcançar o tecido vulnerável.
+    <div class="pills">
+      <span class="pill">crescimento apical</span>
+      <span class="pill">hifas septadas</span>
+      <span class="pill">quimiotropismo</span>
+      <span class="pill">esporulação</span>
+    </div>
+    <p>Não representa uma espécie particular nem deve ser interpretado como modelo de patogenicidade.</p>
+  </div>
+</div>
+</aside>
+</div>
+
+<script>
+(()=>{"use strict";
+
+const canvas=document.querySelector("#scene");
+const ctx=canvas.getContext("2d",{alpha:false});
+const $=q=>document.querySelector(q);
+const TAU=Math.PI*2;
+
+let W=0,H=0,DPR=1,last=0,time=0,paused=false;
+let root=[],dust=[],lesions=[],hyphae=[],spores=[],defense=[];
+let nextId=1,nextLesionId=1;
+let P={growth:1,branch:.68,aggr:.74,spore:.56,organic:.78};
+
+const rand=(a=0,b=1)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const lerpAng=(a,b,t)=>a+norm(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=r.width;H=r.height;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  resetWorld();
+}
+
+function makeRoot(){
+  root=[];
+  const yBase=H*.60;
+  const n=52;
+  for(let i=0;i<n;i++){
+    const u=i/(n-1);
+    root.push({
+      x:lerp(-40,W*.80,u),
+      y:yBase+Math.sin(u*4.8)*H*.035+Math.sin(u*12.4)*H*.009,
+      r:lerp(46,20,u)
+    });
+  }
+}
+
+function rootAt(u){
+  u=clamp(u,0,1);
+  const f=u*(root.length-1);
+  const i=Math.floor(f),j=Math.min(root.length-1,i+1),q=f-i;
+  return{x:lerp(root[i].x,root[j].x,q),y:lerp(root[i].y,root[j].y,q),r:lerp(root[i].r,root[j].r,q)};
+}
+
+function seedDust(){
+  dust=[];
+  for(let i=0;i<Math.floor(W*H/3300);i++){
+    dust.push({x:rand(0,W),y:rand(0,H),r:rand(.8,5.2),a:rand(.04,.16),phase:rand(0,TAU),speed:rand(.12,.65)});
+  }
+}
+
+function addLesion(u=rand(.28,.84)){
+  const p=rootAt(u);
+  lesions.push({
+    id:nextLesionId++,u,x:p.x,y:p.y-rand(2,p.r*.25),r:rand(28,48),
+    life:1,phase:rand(0,TAU),severity:rand(.85,1.35),
+    colonized:false,infection:0,contacts:0
+  });
+  if(lesions.length>8)lesions.shift();
+}
+
+function spawnHypha(x,y,a,depth=0,parent=null){
+  const h={
+    id:nextId++,points:[{x,y}],angle:a,depth,parent,alive:true,age:0,
+    speed:rand(.65,1.18),phase:rand(0,TAU),bias:rand(-.012,.012),
+    lastBranch:0,budget:Math.max(0,5-depth),w:Math.max(.9,3-depth*.34),
+    septaOffset:rand(0,15),infecting:false,mode:"seeking",
+    targetId:null,orbitSide:Math.random()<.5?-1:1
+  };
+  hyphae.push(h);
+  return h;
+}
+
+function seedHyphae(){
+  hyphae=[];spores=[];nextId=1;
+  const starts=[
+    {x:W*.88,y:H*.16,a:2.6},
+    {x:W*.94,y:H*.35,a:2.85},
+    {x:W*.87,y:H*.78,a:-2.7}
+  ];
+  starts.forEach((s,i)=>{
+    spawnHypha(s.x,s.y,s.a,0,null);
+    if(i===0)spawnHypha(s.x+10,s.y+12,s.a+.4,1,null);
+  });
+}
+
+function resetWorld(){
+  time=0;defense=[];nextLesionId=1;
+  makeRoot();seedDust();
+  lesions=[];addLesion(.50);addLesion(.73);
+  seedHyphae();updateStats();
+}
+
+function lesionById(id){
+  return lesions.find(l=>l.id===id)||null;
+}
+
+function nearestLesion(p){
+  let best=null,bd=Infinity;
+  for(const l of lesions){
+    const priority=l.colonized?1.55:.62;
+    const d=dist(p,l)*priority/(l.severity||1);
+    if(d<bd){bd=d;best=l}
+  }
+  return best;
+}
+
+function beginColonization(h,l,x,y){
+  h.infecting=true;
+  h.mode="colonizing";
+  h.targetId=l.id;
+  l.contacts++;
+  l.infection=Math.min(1,l.infection+.08);
+
+  if(!l.colonized){
+    l.colonized=true;
+    const base=Math.atan2(l.y-y,l.x-x);
+    const daughters=5;
+    for(let i=0;i<daughters;i++){
+      const spread=lerp(-1.15,1.15,i/(daughters-1));
+      const child=spawnHypha(x,y,base+spread,h.depth+1,h.id);
+      child.mode="colonizing";
+      child.targetId=l.id;
+      child.orbitSide=i<daughters/2?-1:1;
+      child.budget=3;
+    }
+  }
+}
+
+function updateHypha(h,dt){
+  if(!h.alive)return;
+  h.age+=dt;
+  const p=h.points[h.points.length-1];
+
+  let target=h.targetId?lesionById(h.targetId):nearestLesion(p);
+  if(!target){
+    h.alive=false;
+    return;
+  }
+
+  const dTarget=dist(p,target);
+  const direct=Math.atan2(target.y-p.y,target.x-p.x);
+  let desired=direct;
+
+  if(h.mode==="colonizing"){
+    const tangent=direct+h.orbitSide*Math.PI*.52;
+    const orbitStrength=clamp(1-dTarget/(target.r*2.3),0,1);
+    desired=lerpAng(direct,tangent,.72*orbitStrength);
+  }
+
+  const attraction=P.aggr*clamp(1-dTarget/760,0,1);
+  const steering=h.mode==="colonizing"?.13:.095;
+  h.angle=lerpAng(h.angle,desired,steering*attraction*dt*60);
+
+  const waveScale=h.mode==="colonizing"?.42:1;
+  const wave=(
+    Math.sin(time*1.9+h.phase+h.age*.045)*(.018+P.organic*.055)+
+    Math.sin(time*5.3+h.phase*1.8)*P.organic*.013
+  )*waveScale;
+
+  h.angle=norm(h.angle+wave+h.bias);
+
+  const proximity=clamp(1-dTarget/240,0,1);
+  const invasionBoost=h.mode==="colonizing"?1.18:1+proximity*.24;
+  const step=(.48+h.speed*.86)*P.growth*invasionBoost*dt*60;
+  const nx=p.x+Math.cos(h.angle)*step;
+  const ny=p.y+Math.sin(h.angle)*step;
+
+  if(nx<0||nx>W||ny<0||ny>H){h.alive=false;return}
+  h.points.push({x:nx,y:ny});
+  if(h.points.length>760)h.alive=false;
+
+  const newDistance=dist({x:nx,y:ny},target);
+  if(newDistance<target.r*1.10){
+    if(h.mode!=="colonizing")beginColonization(h,target,nx,ny);
+    h.infecting=true;
+    target.infection=Math.min(1,target.infection+.0028*dt*60*P.aggr);
+    target.life=Math.min(1.45,target.life+.0012*dt*60*P.aggr);
+
+    if($("#response").checked&&Math.random()<.008*dt*60){
+      defense.push({x:nx,y:ny,r:2,life:1,phase:rand(0,TAU)});
+    }
+  }
+
+  const nearLesion=newDistance<target.r*2.5;
+  const branchFactor=h.mode==="colonizing"?2.6:(nearLesion?1.55:.16);
+  const minDelay=h.mode==="colonizing"?25:nearLesion?38:100;
+  const maxDelay=h.mode==="colonizing"?58:nearLesion?80:160;
+
+  if(h.budget>0&&h.age-h.lastBranch>rand(minDelay,maxDelay)&&
+     Math.random()<P.branch*.017*branchFactor*dt*60){
+    h.lastBranch=h.age;
+    h.budget--;
+    const side=Math.random()<.5?1:-1;
+    const child=spawnHypha(nx,ny,h.angle+side*rand(.42,.92),h.depth+1,h.id);
+    if(h.mode==="colonizing"){
+      child.mode="colonizing";
+      child.targetId=target.id;
+      child.orbitSide=side;
+    }
+  }
+
+  const canSporulate=target.colonized&&target.infection>.38&&newDistance<target.r*1.75;
+  if(canSporulate&&h.age>90&&Math.random()<P.spore*.0024*dt*60&&spores.length<70){
+    spores.push({
+      x:nx,y:ny,r:rand(5.5,12),phase:rand(0,TAU),
+      age:0,stem:rand(8,22),mature:0,lesionId:target.id
+    });
+  }
+}
+function update(dt){
+  hyphae.forEach(h=>updateHypha(h,dt));
+  spores.forEach(s=>{s.age+=dt;s.mature=clamp(s.mature+dt*.25,0,1)});
+  defense.forEach(d=>{d.r+=dt*12;d.life-=dt*.5});
+  defense=defense.filter(d=>d.life>0);
+
+  if(hyphae.filter(h=>h.alive).length<4&&hyphae.length<260){
+    spawnHypha(W*.92,rand(H*.12,H*.88),rand(2.35,3.9),0,null);
+  }
+  updateStats();
+}
+
+function drawBackground(){
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#241116");g.addColorStop(.52,"#140b0e");g.addColorStop(1,"#0b0809");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const rg=ctx.createRadialGradient(W*.63,H*.46,0,W*.63,H*.46,Math.max(W,H)*.65);
+  rg.addColorStop(0,"rgba(145,52,71,.15)");rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+
+  if($("#soil").checked){
+    for(const p of dust){
+      const yy=p.y+Math.sin(time*p.speed+p.phase)*2.2;
+      ctx.beginPath();ctx.arc(p.x,yy,p.r,0,TAU);
+      ctx.fillStyle=`rgba(218,181,181,${p.a})`;ctx.fill();
+    }
+  }
+
+  ctx.save();ctx.globalAlpha=.13;
+  for(let i=0;i<21;i++){
+    const px=(i*149.6)%W,py=(i*87.7)%H;
+    ctx.beginPath();ctx.ellipse(px,py,22+(i%5)*10,8+(i%4)*6,(i*.66)%TAU,0,TAU);
+    ctx.fillStyle="#050405";ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawRoot(){
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(126,224,167,.08)";ctx.lineWidth=86;ctx.stroke();
+
+  const g=ctx.createLinearGradient(0,H*.5,W*.8,H*.68);
+  g.addColorStop(0,"#5f382b");g.addColorStop(.5,"#9d6246");g.addColorStop(1,"#6f3f32");
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle=g;ctx.lineWidth=66;ctx.stroke();
+
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(255,213,168,.19)";ctx.lineWidth=45;ctx.stroke();
+
+  // cell boundaries
+  ctx.globalAlpha=.25;
+  for(let i=2;i<root.length-2;i+=3){
+    const p=root[i];
+    ctx.beginPath();ctx.ellipse(p.x,p.y,23,13,.12,0,TAU);
+    ctx.strokeStyle="#ffd0a7";ctx.lineWidth=1;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLesions(){
+  for(const l of lesions){
+    const infection=l.infection||0;
+    const pulse=1+Math.sin(time*(2+infection*1.4)+l.phase)*(.06+infection*.05);
+    const rr=l.r*pulse;
+
+    // Campo atrativo: partículas convergem para a lesão antes da colonização.
+    if(!l.colonized){
+      for(let i=0;i<7;i++){
+        const u=(time*.12+i/7+l.phase)%1;
+        const a=l.phase+i/7*TAU;
+        const radius=rr*(2.2-u*1.65);
+        const px=l.x+Math.cos(a+u*.8)*radius;
+        const py=l.y+Math.sin(a+u*.8)*radius;
+        ctx.beginPath();ctx.arc(px,py,1.4+u,0,TAU);
+        ctx.fillStyle=`rgba(255,178,103,${.12+.42*u})`;ctx.fill();
+      }
+    }
+
+    const g=ctx.createRadialGradient(l.x,l.y,0,l.x,l.y,rr*(1.55+infection*.35));
+    g.addColorStop(0,`rgba(255,205,125,${.30+.25*infection})`);
+    g.addColorStop(.42,`rgba(255,104,95,${.16+.28*infection})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(l.x,l.y,rr*(1.55+infection*.35),0,TAU);ctx.fill();
+
+    ctx.save();ctx.translate(l.x,l.y);
+    const cracks=8+Math.floor(infection*7);
+    for(let i=0;i<cracks;i++){
+      const a=i/cracks*TAU+l.phase;
+      const r=rr*(.28+(i%3)*.13+infection*.12);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*r*.24,Math.sin(a)*r*.24);
+      ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+      ctx.strokeStyle=l.colonized
+        ?`rgba(255,117,135,${.48+.35*infection})`
+        :`rgba(255,188,122,${.48*l.life})`;
+      ctx.lineWidth=1.2+infection*.9;ctx.stroke();
+    }
+
+    if(l.colonized){
+      ctx.strokeStyle=`rgba(255,226,193,${.25+.4*infection})`;
+      ctx.lineWidth=1.1;
+      ctx.setLineDash([3,5]);
+      ctx.beginPath();ctx.arc(0,0,rr*(.7+infection*.18),0,TAU);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  }
+}
+function drawHyphae(){
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+
+  if($("#halo").checked){
+    for(const h of hyphae){
+      if(h.points.length<2)continue;
+      ctx.beginPath();h.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+      ctx.strokeStyle=h.mode==="colonizing"?"rgba(255,72,93,.18)":"rgba(255,143,159,.055)";
+      ctx.lineWidth=h.w*7;ctx.stroke();
+    }
+  }
+
+  for(const h of hyphae){
+    if(h.points.length<2)continue;
+    const a=h.points[0],b=h.points[h.points.length-1];
+    const g=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    g.addColorStop(0,h.mode==="colonizing"?"#ffd08d":"#ead1d7");
+    g.addColorStop(.55,h.mode==="colonizing"?"#ff6f86":"#d98291");
+    g.addColorStop(1,h.mode==="colonizing"?"#b72e4b":"#884152");
+
+    ctx.beginPath();h.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle=g;ctx.lineWidth=h.w;ctx.stroke();
+
+    if($("#septa").checked){
+      const spacing=18;
+      for(let d=h.septaOffset;d<h.points.length;d+=spacing){
+        const i=Math.floor(d);
+        if(i<1||i>=h.points.length-1)continue;
+        const p=h.points[i],p0=h.points[i-1],p1=h.points[i+1];
+        const ang=Math.atan2(p1.y-p0.y,p1.x-p0.x)+Math.PI/2;
+        const len=h.w*1.45;
+        ctx.beginPath();
+        ctx.moveTo(p.x+Math.cos(ang)*len,p.y+Math.sin(ang)*len);
+        ctx.lineTo(p.x-Math.cos(ang)*len,p.y-Math.sin(ang)*len);
+        ctx.strokeStyle="rgba(255,240,242,.48)";ctx.lineWidth=.8;ctx.stroke();
+      }
+    }
+
+    if(h.alive){
+      const p=b;
+      const r=3+Math.sin(time*5+h.phase)*.9;
+      const gg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*5);
+      gg.addColorStop(0,"rgba(255,240,242,.95)");
+      gg.addColorStop(.28,h.mode==="colonizing"?"rgba(255,88,113,.82)":"rgba(255,143,159,.52)");
+      gg.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=gg;ctx.beginPath();ctx.arc(p.x,p.y,r*5,0,TAU);ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawSpores(){
+  ctx.save();
+  for(const s of spores){
+    const pulse=1+Math.sin(time*1.8+s.phase)*.05;
+    const rr=s.r*pulse*(.55+.45*s.mature);
+
+    ctx.beginPath();
+    ctx.moveTo(s.x,s.y+s.stem);
+    ctx.lineTo(s.x,s.y+rr*.4);
+    ctx.strokeStyle="rgba(255,156,172,.52)";ctx.lineWidth=1;ctx.stroke();
+
+    const g=ctx.createRadialGradient(s.x-rr*.25,s.y-rr*.3,1,s.x,s.y,rr);
+    g.addColorStop(0,"rgba(244,222,255,.95)");
+    g.addColorStop(.45,"rgba(198,148,255,.88)");
+    g.addColorStop(1,"rgba(93,45,126,.96)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,rr,0,TAU);ctx.fill();
+
+    ctx.strokeStyle="rgba(255,240,255,.42)";ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(s.x,s.y,rr*.74,0,TAU);ctx.stroke();
+
+    for(let i=0;i<5;i++){
+      const a=i/5*TAU+s.phase;
+      ctx.beginPath();ctx.arc(s.x+Math.cos(a)*rr*.36,s.y+Math.sin(a)*rr*.36,1.1,0,TAU);
+      ctx.fillStyle="rgba(255,237,255,.45)";ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawDefense(){
+  if(!$("#response").checked)return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const d of defense){
+    const g=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*1.8);
+    g.addColorStop(0,`rgba(126,224,167,${.28*d.life})`);
+    g.addColorStop(.65,`rgba(126,224,167,${.08*d.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,d.y,d.r*1.8,0,TAU);ctx.fill();
+    ctx.strokeStyle=`rgba(126,224,167,${.35*d.life})`;ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,TAU);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function draw(){
+  drawBackground();
+  drawRoot();
+  drawLesions();
+  drawHyphae();
+  drawSpores();
+  drawDefense();
+
+  const v=ctx.createRadialGradient(W*.55,H*.5,Math.min(W,H)*.2,W*.55,H*.5,Math.max(W,H)*.74);
+  v.addColorStop(.55,"rgba(0,0,0,0)");
+  v.addColorStop(1,"rgba(0,0,0,.52)");
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function updateStats(){
+  $("#tips").textContent=hyphae.filter(h=>h.alive).length;
+  $("#segments").textContent=hyphae.reduce((s,h)=>s+Math.max(0,h.points.length-1),0).toLocaleString("pt-BR");
+  $("#spores").textContent=spores.length;
+  const colonized=lesions.filter(l=>l.colonized).length;
+  $("#lesions").textContent=colonized+"/"+lesions.length;
+}
+
+function frame(ts){
+  if(!last)last=ts;
+  const dt=Math.min(.033,(ts-last)/1000);
+  last=ts;
+  if(!paused){time+=dt;update(dt)}
+  draw();
+  requestAnimationFrame(frame);
+}
+
+function bind(id,out,key,scale,fmt){
+  const e=$(id);
+  const sync=()=>{P[key]=+e.value*scale;$(out).textContent=fmt(e.value)};
+  e.addEventListener("input",sync);
+  sync();
+}
+bind("#growth","#growthV","growth",1,v=>(+v).toFixed(1)+"×");
+bind("#branch","#branchV","branch",.01,v=>v+"%");
+bind("#aggr","#aggrV","aggr",.01,v=>v+"%");
+bind("#spore","#sporeV","spore",.01,v=>v+"%");
+bind("#organic","#organicV","organic",.01,v=>v+"%");
+
+$("#toggle").onclick=()=>{
+  paused=!paused;
+  $("#toggle").textContent=paused?"Continuar":"Pausar";
+  $("#toggle").classList.toggle("primary",!paused);
+};
+$("#reset").onclick=resetWorld;
+
+canvas.addEventListener("pointerdown",e=>{
+  const r=canvas.getBoundingClientRect();
+  const px=e.clientX-r.left,py=e.clientY-r.top;
+  let best={d:Infinity,u:.5};
+  for(let i=0;i<root.length;i++){
+    const d=Math.hypot(px-root[i].x,py-root[i].y);
+    if(d<best.d)best={d,u:i/(root.length-1)};
+  }
+  if(best.d<90)addLesion(best.u);
+});
+
+addEventListener("resize",resize,{passive:true});
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Beans Microbe Lab — Biblioteca procedural</title>
+<style>
+:root {
+  --bg:#06110d; --panel:#0b1c17e8; --panel2:#102820df; --text:#f2fff8;
+  --muted:#a8c8b9; --line:#c7ffdf1b; --green:#89efb1; --current:#89efb1;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
+font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{background:
+radial-gradient(circle at 10% 12%,#2b75503a,transparent 28%),
+radial-gradient(circle at 86% 8%,#83539420,transparent 24%),
+linear-gradient(145deg,#06110d,#091b15 58%,#050c09)}
+.app{min-height:100%;display:grid;grid-template-rows:auto 1fr}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:22px 24px 16px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+h1{margin:6px 0 5px;font-size:clamp(27px,4vw,48px);line-height:.95;letter-spacing:-.045em}
+.lead{max-width:720px;color:var(--muted);font-size:13px;line-height:1.45}
+.progress{min-width:190px;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:#ffffff08}
+.progress b{display:block;font-size:23px;letter-spacing:-.04em} .progress span{font-size:10px;color:var(--muted)}
+.workspace{min-height:0;display:grid;grid-template-columns:350px minmax(0,1fr);gap:15px;padding:15px}
+.library,.viewer{min-height:0;border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,var(--panel2),#06120eef);box-shadow:0 24px 80px #0006}
+.library{display:grid;grid-template-rows:auto auto 1fr;overflow:hidden}
+.library-head{padding:16px 16px 10px} .library-head h2{font-size:14px;margin:0 0 8px}
+.filters{display:flex;gap:6px;overflow:auto;padding-bottom:4px}
+.filter{white-space:nowrap;border:1px solid #ffffff14;background:#ffffff08;color:#dff7ea;border-radius:999px;padding:7px 9px;font:inherit;font-size:10px;cursor:pointer}
+.filter.active{background:#8eefb11d;border-color:#8eefb138;color:#baf8d0}
+.search-wrap{padding:0 16px 12px} input{width:100%;border:1px solid #ffffff14;background:#06130fc9;color:#effff6;border-radius:12px;padding:10px 12px;outline:none}
+.cards{padding:0 10px 12px;overflow:auto;display:grid;gap:8px}
+.microbe-card{position:relative;overflow:hidden;text-align:left;border:1px solid #ffffff12;border-radius:15px;padding:12px;background:#ffffff07;color:var(--text);cursor:pointer;transition:.18s}
+.microbe-card:hover{transform:translateY(-1px);background:#ffffff0c}
+.microbe-card.active{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 11%,#07130f)}
+.card-glow{position:absolute;width:110px;height:110px;right:-40px;top:-45px;border-radius:50%;background:radial-gradient(circle,var(--accent),transparent 68%);opacity:.12}
+.card-top{display:flex;align-items:center;gap:7px;margin-bottom:7px} .organism-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 13px var(--accent)}
+.kind{font-size:9px;color:#c5e1d3;text-transform:uppercase;letter-spacing:.09em}
+.microbe-card strong{display:block;font-size:15px} .microbe-card small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.role{display:block;font-size:10px;line-height:1.35;color:#d6eee2;margin-top:8px}
+.signature{display:block;font-size:9px;line-height:1.35;color:#91b5a4;margin-top:5px}
+.viewer{display:grid;grid-template-rows:auto minmax(390px,1fr) auto;overflow:hidden}
+.viewer-head{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px 16px;border-bottom:1px solid #ffffff10}
+.title-block{min-width:0} .title-block h2{margin:0;font-size:18px} .title-block p{margin:3px 0 0;font-size:10px;color:var(--muted)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.action{border:1px solid #ffffff14;border-radius:10px;padding:8px 10px;background:#ffffff08;color:#eafff3;font:inherit;font-size:10px;font-weight:700;cursor:pointer;text-decoration:none}
+.action.primary{background:linear-gradient(135deg,#8ef2b2,#4cc887);color:#062015;border-color:transparent}
+.frame-wrap{position:relative;background:#030a07}
+iframe{width:100%;height:100%;border:0;display:block;background:#06110d}
+.loading{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;background:#06110d;transition:.3s}
+.loading.hidden{opacity:0}
+.spinner{width:34px;height:34px;border:3px solid #ffffff14;border-top-color:var(--current);border-radius:50%;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.viewer-foot{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;padding:13px 16px;border-top:1px solid #ffffff10;background:#06130fa8}
+.viewer-foot h3{font-size:10px;text-transform:uppercase;letter-spacing:.11em;color:#8fb7a4;margin:0 0 6px}
+.viewer-foot p{font-size:11px;line-height:1.45;margin:0;color:#d7eee2}
+.tags{display:flex;gap:6px;flex-wrap:wrap} .tag{font-size:9px;padding:5px 7px;border-radius:999px;border:1px solid #ffffff12;background:#ffffff07;color:#d9f1e5}
+.footer-note{font-size:9px;color:#759786;margin-top:7px}
+@media(max-width:980px){
+  .workspace{grid-template-columns:1fr} .library{max-height:none} .cards{grid-template-columns:repeat(2,minmax(0,1fr));max-height:430px}
+  .viewer{min-height:720px}
+}
+@media(max-width:620px){
+  header{align-items:flex-start;flex-direction:column;padding:17px 14px 13px}
+  .progress{width:100%} .workspace{padding:9px;gap:9px} .library,.viewer{border-radius:17px}
+  .cards{grid-template-columns:1fr} .viewer-head{align-items:flex-start;flex-direction:column}
+  .actions{justify-content:flex-start} .viewer-foot{grid-template-columns:1fr} .viewer{min-height:690px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="eyebrow">Beans for a Living Soil</div>
+    <h1>Biblioteca procedural de microrganismos</h1>
+    <div class="lead">Coleção aprovada para comparar silhueta, movimento, função biológica e linguagem visual antes da integração no jogo.</div>
+  </div>
+  <div class="progress"><b>8/8</b><span>sistemas principais concluídos</span></div>
+</header>
+
+<div class="workspace">
+  <section class="library">
+    <div class="library-head">
+      <h2>Organismos e sistemas</h2>
+      <div class="filters">
+        <button class="filter active" data-filter="all">Todos</button>
+        <button class="filter" data-filter="Simbiose">Simbiose</button>
+        <button class="filter" data-filter="Nutrição">Nutrição</button>
+        <button class="filter" data-filter="Biocontrole">Biocontrole</button>
+        <button class="filter" data-filter="Proteção">Proteção</button>
+        <button class="filter" data-filter="Pressão">Pressão</button>
+      </div>
+    </div>
+    <div class="search-wrap"><input id="search" placeholder="Buscar organismo, função ou mecanismo…"></div>
+    <div id="cards" class="cards">
+    <button class="microbe-card" data-id="micorriza" data-type="Simbiose fúngica" style="--accent:#d6afff">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Simbiose fúngica</span></span>
+      <strong>Micorriza</strong>
+      <small>Fungo micorrízico arbuscular</small>
+      <span class="role">Ampliação da exploração do solo e aquisição de fósforo</span>
+      <span class="signature">Rede hifal ramificada, arbúsculos e fluxo P ↔ C</span>
+    </button>
+
+    <button class="microbe-card" data-id="rhizobium" data-type="Simbiose bacteriana" style="--accent:#79e8dc">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Simbiose bacteriana</span></span>
+      <strong>Rhizobium</strong>
+      <small>Bactéria simbiótica nodulante</small>
+      <span class="role">Colonização inicial associada à fixação biológica de nitrogênio</span>
+      <span class="signature">Bastonete segmentado, flagelos e adesão ao pelo radicular</span>
+    </button>
+
+    <button class="microbe-card" data-id="oportunista" data-type="Pressão biológica" style="--accent:#ff8297">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Pressão biológica</span></span>
+      <strong>Fungo oportunista</strong>
+      <small>Arquétipo funcional inespecífico</small>
+      <span class="role">Exploração de tecidos enfraquecidos e lesões radiculares</span>
+      <span class="signature">Busca esparsa seguida de colonização densa da lesão</span>
+    </button>
+
+    <button class="microbe-card" data-id="pgpb-p" data-type="Nutrição vegetal" style="--accent:#8db8ff">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Nutrição vegetal</span></span>
+      <strong>PGPB solubilizadora</strong>
+      <small>Comunidade funcional solubilizadora de fósforo</small>
+      <span class="role">Mobilização de fósforo ligado a depósitos minerais</span>
+      <span class="signature">Pili, biofilme, secreção localizada e dissolução mineral</span>
+    </button>
+
+    <button class="microbe-card" data-id="trichoderma" data-type="Biocontrole" style="--accent:#8df0a8">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Biocontrole</span></span>
+      <strong>Trichoderma</strong>
+      <small>Fungo de biocontrole</small>
+      <span class="role">Reconhecimento, enrolamento e degradação de hifas-alvo</span>
+      <span class="signature">Hifas verdes que envolvem e fragmentam o fungo-alvo</span>
+    </button>
+
+    <button class="microbe-card" data-id="azospirillum" data-type="Arquitetura radicular" style="--accent:#72e8dd">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Arquitetura radicular</span></span>
+      <strong>Azospirillum</strong>
+      <small>Bactéria associativa promotora de crescimento</small>
+      <span class="role">Colonização da raiz e estímulo estilizado de raízes laterais</span>
+      <span class="signature">Célula curva, flagelo polar e pulsos fitormonais</span>
+    </button>
+
+    <button class="microbe-card" data-id="bacillus" data-type="Resiliência e proteção" style="--accent:#70e5d6">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Resiliência e proteção</span></span>
+      <strong>Bacillus</strong>
+      <small>Bactéria formadora de endósporos</small>
+      <span class="role">Biofilme, resistência a estresse e metabólitos protetores</span>
+      <span class="signature">Bastonetes, flagelos peritríquios, microcolônias e endósporos</span>
+    </button>
+
+    <button class="microbe-card" data-id="pseudomonas" data-type="Competição por ferro" style="--accent:#b9f36f">
+      <span class="card-glow"></span>
+      <span class="card-top"><span class="organism-dot"></span><span class="kind">Competição por ferro</span></span>
+      <strong>Pseudomonas</strong>
+      <small>Bactéria produtora de sideróforos</small>
+      <span class="role">Quelação e captação de ferro na rizosfera</span>
+      <span class="signature">Bastonete reto e fino, tufo polar e fluorescência periférica</span>
+    </button></div>
+  </section>
+
+  <section class="viewer">
+    <div class="viewer-head">
+      <div class="title-block">
+        <h2 id="currentName">Micorriza</h2>
+        <p id="currentScientific">Fungo micorrízico arbuscular</p>
+      </div>
+      <div class="actions">
+        <button id="previous" class="action">← Anterior</button>
+        <button id="next" class="action">Próximo →</button>
+        <a id="openFull" class="action primary" target="_blank">Abrir em tela inteira</a>
+      </div>
+    </div>
+    <div class="frame-wrap">
+      <iframe id="viewerFrame" title="Visualização procedural"></iframe>
+      <div id="loading" class="loading"><div class="spinner"></div></div>
+    </div>
+    <div class="viewer-foot">
+      <div>
+        <h3>Função no jogo</h3>
+        <p id="currentRole"></p>
+        <div id="currentSignature" class="footer-note"></div>
+      </div>
+      <div>
+        <h3>Mecânicas visuais</h3>
+        <div id="currentTags" class="tags"></div>
+      </div>
+    </div>
+  </section>
+</div>
+</div>
+
+<script>
+const DATA=[{"id": "micorriza", "name": "Micorriza", "scientific": "Fungo micorrízico arbuscular", "file": "micorriza_procedural.html", "type": "Simbiose fúngica", "role": "Ampliação da exploração do solo e aquisição de fósforo", "signature": "Rede hifal ramificada, arbúsculos e fluxo P ↔ C", "mechanics": ["crescimento apical", "ramificação", "quimiotropismo", "fluxo bidirecional"], "accent": "#d6afff"}, {"id": "rhizobium", "name": "Rhizobium", "scientific": "Bactéria simbiótica nodulante", "file": "rhizobium_procedural.html", "type": "Simbiose bacteriana", "role": "Colonização inicial associada à fixação biológica de nitrogênio", "signature": "Bastonete segmentado, flagelos e adesão ao pelo radicular", "mechanics": ["quimiotaxia", "nado", "adesão", "sinal Nod estilizado"], "accent": "#79e8dc"}, {"id": "oportunista", "name": "Fungo oportunista", "scientific": "Arquétipo funcional inespecífico", "file": "fungo_oportunista_lesoes_v2.html", "type": "Pressão biológica", "role": "Exploração de tecidos enfraquecidos e lesões radiculares", "signature": "Busca esparsa seguida de colonização densa da lesão", "mechanics": ["detecção de lesão", "invasão", "ramificação local", "esporulação"], "accent": "#ff8297"}, {"id": "pgpb-p", "name": "PGPB solubilizadora", "scientific": "Comunidade funcional solubilizadora de fósforo", "file": "pgpb_solubilizadora_procedural.html", "type": "Nutrição vegetal", "role": "Mobilização de fósforo ligado a depósitos minerais", "signature": "Pili, biofilme, secreção localizada e dissolução mineral", "mechanics": ["twitching", "adesão", "biofilme", "solubilização"], "accent": "#8db8ff"}, {"id": "trichoderma", "name": "Trichoderma", "scientific": "Fungo de biocontrole", "file": "trichoderma_procedural.html", "type": "Biocontrole", "role": "Reconhecimento, enrolamento e degradação de hifas-alvo", "signature": "Hifas verdes que envolvem e fragmentam o fungo-alvo", "mechanics": ["reconhecimento", "enrolamento", "enzimas líticas", "micoparasitismo"], "accent": "#8df0a8"}, {"id": "azospirillum", "name": "Azospirillum", "scientific": "Bactéria associativa promotora de crescimento", "file": "azospirillum_procedural.html", "type": "Arquitetura radicular", "role": "Colonização da raiz e estímulo estilizado de raízes laterais", "signature": "Célula curva, flagelo polar e pulsos fitormonais", "mechanics": ["quimiotaxia", "colonização", "sinal hormonal", "raízes laterais"], "accent": "#72e8dd"}, {"id": "bacillus", "name": "Bacillus", "scientific": "Bactéria formadora de endósporos", "file": "bacillus_procedural.html", "type": "Resiliência e proteção", "role": "Biofilme, resistência a estresse e metabólitos protetores", "signature": "Bastonetes, flagelos peritríquios, microcolônias e endósporos", "mechanics": ["adesão", "biofilme", "esporulação", "proteção"], "accent": "#70e5d6"}, {"id": "pseudomonas", "name": "Pseudomonas", "scientific": "Bactéria produtora de sideróforos", "file": "pseudomonas_sideroforo_morfologia_v2.html", "type": "Competição por ferro", "role": "Quelação e captação de ferro na rizosfera", "signature": "Bastonete reto e fino, tufo polar e fluorescência periférica", "mechanics": ["quimiotaxia", "sideróforos", "captação de ferro", "competição"], "accent": "#b9f36f"}];
+const cards=[...document.querySelectorAll(".microbe-card")];
+const frame=document.querySelector("#viewerFrame");
+const loading=document.querySelector("#loading");
+const search=document.querySelector("#search");
+let current=0,filter="all";
+
+function visibleItems(){
+  const q=search.value.trim().toLocaleLowerCase("pt-BR");
+  return DATA.filter(m=>{
+    const f=filter==="all" || m.type.toLowerCase().includes(filter.toLowerCase());
+    const hay=(m.name+" "+m.scientific+" "+m.type+" "+m.role+" "+m.signature+" "+m.mechanics.join(" ")).toLocaleLowerCase("pt-BR");
+    return f && (!q || hay.includes(q));
+  });
+}
+
+function applyFilter(){
+  const ids=new Set(visibleItems().map(m=>m.id));
+  cards.forEach(c=>c.style.display=ids.has(c.dataset.id)?"block":"none");
+}
+
+function selectById(id){
+  const idx=DATA.findIndex(m=>m.id===id);
+  if(idx<0)return;
+  current=idx;
+  const m=DATA[current];
+  document.documentElement.style.setProperty("--current",m.accent);
+  cards.forEach(c=>c.classList.toggle("active",c.dataset.id===id));
+  document.querySelector("#currentName").textContent=m.name;
+  document.querySelector("#currentScientific").textContent=m.scientific;
+  document.querySelector("#currentRole").textContent=m.role;
+  document.querySelector("#currentSignature").textContent=m.signature;
+  document.querySelector("#currentTags").innerHTML=m.mechanics.map(t=>`<span class="tag">${t}</span>`).join("");
+  document.querySelector("#openFull").href=m.file;
+  loading.classList.remove("hidden");
+  frame.src=m.file;
+  const card=cards.find(c=>c.dataset.id===id);
+  card?.scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+
+frame.addEventListener("load",()=>loading.classList.add("hidden"));
+cards.forEach(c=>c.addEventListener("click",()=>selectById(c.dataset.id)));
+document.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");filter=b.dataset.filter;applyFilter();
+}));
+search.addEventListener("input",applyFilter);
+document.querySelector("#previous").addEventListener("click",()=>selectById(DATA[(current-1+DATA.length)%DATA.length].id));
+document.querySelector("#next").addEventListener("click",()=>selectById(DATA[(current+1)%DATA.length].id));
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowLeft")selectById(DATA[(current-1+DATA.length)%DATA.length].id);
+  if(e.key==="ArrowRight")selectById(DATA[(current+1)%DATA.length].id);
+});
+selectById(DATA[0].id);
+</script>
+</body>
+</html>

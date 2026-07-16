@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pseudomonas procedural — Beans for a Living Soil</title>
+<style>
+:root{
+  --bg:#07120f;--panel:#0a1c17eb;--line:#c9ffe01b;--text:#f1fff8;
+  --muted:#a9cab9;--green:#84efaf;--cyan:#66f0dc;--gold:#ffd36f;--blue:#8fbaff;--red:#ff7f8f
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body{
+  background:
+    radial-gradient(circle at 14% 18%,#2d785136,transparent 27%),
+    radial-gradient(circle at 84% 14%,#4360b022,transparent 24%),
+    linear-gradient(145deg,#07120f,#0a1e18 54%,#06100d)
+}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.stage,.panel{
+  border:1px solid var(--line);border-radius:24px;
+  background:linear-gradient(160deg,#10291fef,#06130fee);
+  box-shadow:0 24px 80px #0007,inset 0 1px 0 #fff0d
+}
+.stage{position:relative;min-width:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;z-index:3;left:22px;top:18px;pointer-events:none;text-shadow:0 3px 20px #0008}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+.back-btn{pointer-events:auto;display:inline-flex;align-items:center;margin-bottom:12px;padding:6px 12px;background:#ffffff14;border:1px solid #ffffff24;border-radius:8px;color:#d7f7e8;font-size:11px;text-decoration:none;font-weight:600;backdrop-filter:blur(4px);transition:.2s}.back-btn:hover{background:#ffffff24;transform:translateY(-1px)}
+h1{font-size:clamp(24px,4vw,48px);line-height:.95;letter-spacing:-.045em;margin:7px 0}
+.sub{max-width:570px;font-size:13px;line-height:1.45;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.badge,.hint{border:1px solid #ffffff18;background:#06161199;backdrop-filter:blur(8px)}
+.badge{padding:6px 9px;border-radius:999px;font-size:10px}
+.hint{position:absolute;left:20px;bottom:18px;z-index:3;padding:9px 12px;border-radius:999px;font-size:11px;color:#d7f7e8}
+.legend{position:absolute;right:16px;bottom:16px;z-index:3;display:grid;gap:5px;padding:9px 11px;border-radius:13px;background:#061611aa;border:1px solid #fff1a}
+.legend div{font-size:10px;color:#cbe9da;display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 13px currentColor}
+.panel{padding:18px;overflow:auto}
+.sec{padding:14px 0;border-bottom:1px solid #ffffff12}.sec:first-child{padding-top:0}.sec:last-child{border-bottom:0}
+h2{font-size:13px;margin:0 0 12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{
+  border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;background:#ffffff0d;
+  color:var(--text);font:inherit;font-weight:750;cursor:pointer;transition:.18s
+}
+button:hover{transform:translateY(-1px);background:#ffffff16}
+.primary{background:linear-gradient(135deg,#91f5b6,#4bc986);color:#062015;border-color:transparent}
+.wide{grid-column:1/-1}
+.control{margin:12px 0}
+.control label{display:flex;justify-content:space-between;font-size:12px;color:#cae5d7;margin-bottom:7px}
+.value{font-weight:800;color:var(--green)}
+input[type=range]{width:100%;accent-color:#7ce6a2}
+.toggle{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cae5d7;padding:9px 10px;margin:7px 0;border-radius:11px;background:#ffffff08}
+.switch{position:relative;width:40px;height:23px}.switch input{opacity:0}
+.slider{position:absolute;inset:0;border-radius:99px;background:#263a32}
+.slider:before{content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+.slider{background:#55c987}.switch input:checked+.slider:before{transform:translateX(17px)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px;border:1px solid #ffffff0d;border-radius:12px;background:#ffffff08}
+.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
+.note{font-size:11px;line-height:1.5;color:var(--muted)}.note strong{color:#effff6}
+.pills{margin-top:8px}.pill{display:inline-block;margin:3px 3px 0 0;padding:5px 8px;border-radius:999px;border:1px solid #9af7bd22;background:#9af7bd10;font-size:10px;color:#dff8ea}
+@media(max-width:900px){
+  body{overflow:auto}#app{height:auto;min-height:100%;grid-template-columns:1fr;padding:10px}
+  .stage{display:flex;flex-direction:column;height:82vh;min-height:600px}canvas{flex:1;min-height:400px}
+  .brand{position:relative;left:0;top:0;padding:18px 18px 22px;background:#0a1c17eb;border-bottom:1px solid var(--line);order:-1;pointer-events:auto}
+  .panel{overflow:visible}
+}
+@media(max-width:560px){
+  .stage,.panel{border-radius:18px}.stage{height:88vh;min-height:550px}
+  .brand{padding:15px 15px 18px}.sub{max-width:none}
+  .hint{left:13px;bottom:13px;max-width:74%;white-space:normal;border-radius:12px}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="stage">
+<canvas id="scene" aria-label="Visualização procedural de Pseudomonas produtora de sideróforos"></canvas>
+<div class="brand">
+  <a href="index.html" class="back-btn">← Voltar para a biblioteca</a>
+  <div class="eyebrow">Beans for a Living Soil · Microbe Lab</div>
+  <h1>Pseudomonas procedural</h1>
+  <div class="sub">Bastonetes retos, finos e menores, com um tufo de flagelos em um único polo, colonizam a rizosfera e liberam sideróforos fluorescentes para capturar ferro.</div>
+  <div class="badges">
+    <span class="badge">tufo polar de flagelos</span>
+    <span class="badge">sideróforos</span>
+    <span class="badge">captação de ferro</span>
+    <span class="badge">competição</span>
+  </div>
+</div>
+<div class="hint">Clique ou toque no solo para criar um novo microdepósito de ferro.</div>
+<div class="legend">
+  <div><span class="dot" style="color:#66f0dc;background:#66f0dc"></span>Pseudomonas e sideróforos</div>
+  <div><span class="dot" style="color:#ffd36f;background:#ffd36f"></span>Ferro quelado</div>
+  <div><span class="dot" style="color:#ff7f8f;background:#ff7f8f"></span>Competidores</div>
+</div>
+</main>
+
+<aside class="panel">
+<div class="sec">
+  <h2>Controle</h2>
+  <div class="buttons">
+    <button id="toggle" class="primary">Pausar</button>
+    <button id="reset">Nova comunidade</button>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comportamento procedural</h2>
+  <div class="control">
+    <label>Número de células <span id="countV" class="value">30</span></label>
+    <input id="count" type="range" min="8" max="65" value="30" step="1">
+  </div>
+  <div class="control">
+    <label>Mobilidade <span id="motilityV" class="value">74%</span></label>
+    <input id="motility" type="range" min="0" max="100" value="74" step="1">
+  </div>
+  <div class="control">
+    <label>Quimiotaxia <span id="chemV" class="value">80%</span></label>
+    <input id="chem" type="range" min="0" max="100" value="80" step="1">
+  </div>
+  <div class="control">
+    <label>Secreção de sideróforos <span id="sideroV" class="value">76%</span></label>
+    <input id="sidero" type="range" min="0" max="100" value="76" step="1">
+  </div>
+  <div class="control">
+    <label>Competição por ferro <span id="compV" class="value">68%</span></label>
+    <input id="comp" type="range" min="0" max="100" value="68" step="1">
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Camadas</h2>
+  <div class="toggle">Tufo de flagelos polares
+    <label class="switch"><input id="flagella" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Halos de sideróforos
+    <label class="switch"><input id="halo" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Fluxo de ferro quelado
+    <label class="switch"><input id="flow" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Partículas do solo
+    <label class="switch"><input id="soil" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Interação em tempo real</h2>
+  <div class="stats">
+    <div class="stat"><b id="free">0</b><span>células livres</span></div>
+    <div class="stat"><b id="attached">0</b><span>células aderidas</span></div>
+    <div class="stat"><b id="complexes">0</b><span>complexos Fe-sideróforo</span></div>
+    <div class="stat"><b id="weak">0</b><span>competidores enfraquecidos</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Leitura biológica</h2>
+  <div class="note">
+    <strong>O que está sendo representado:</strong> bastonetes retos, finos e com tufo polar de flagelos colonizam a raiz e a vizinhança de microdepósitos de ferro, secretam sideróforos fluorescentes, capturam ferro e reduzem sua disponibilidade para competidores da rizosfera.
+    <div class="pills">
+      <span class="pill">bastonete reto</span><span class="pill">quimiotaxia</span>
+      <span class="pill">rizosfera</span>
+      <span class="pill">sideróforos</span>
+      <span class="pill">competição por ferro</span>
+    </div>
+    <p>É uma visualização funcional, não uma representação quantitativa de afinidade, cinética de captação ou ecologia real da comunidade.</p>
+  </div>
+</div>
+</aside>
+</div>
+
+<script>
+(()=>{"use strict";
+
+const canvas=document.querySelector("#scene");
+const ctx=canvas.getContext("2d",{alpha:false});
+const $=q=>document.querySelector(q);
+const TAU=Math.PI*2;
+
+let W=0,H=0,DPR=1,last=0,time=0,paused=false;
+let root=[],cells=[],ironNodes=[],competitors=[],dust=[],halos=[],complexes=[];
+let P={count:30,motility:.74,chem:.80,sidero:.76,comp:.68};
+
+const rand=(a=0,b=1)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const lerpAng=(a,b,t)=>a+norm(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=r.width;H=r.height;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  resetWorld();
+}
+
+function makeRoot(){
+  root=[];
+  const xBase=W*.28;
+  const n=52;
+  for(let i=0;i<n;i++){
+    const u=i/(n-1);
+    root.push({
+      x:xBase+Math.sin(u*5.6+.3)*W*.018+Math.sin(u*12.4)*W*.005,
+      y:lerp(-28,H+34,u),
+      r:lerp(33,16,u)
+    });
+  }
+}
+
+function rootAt(u){
+  u=clamp(u,0,1);
+  const f=u*(root.length-1);
+  const i=Math.floor(f),j=Math.min(root.length-1,i+1),q=f-i;
+  return {x:lerp(root[i].x,root[j].x,q),y:lerp(root[i].y,root[j].y,q),r:lerp(root[i].r,root[j].r,q)};
+}
+
+function seedDust(){
+  dust=[];
+  for(let i=0;i<Math.floor(W*H/3400);i++){
+    dust.push({x:rand(0,W),y:rand(0,H),r:rand(.8,5),a:rand(.04,.17),phase:rand(0,TAU),speed:rand(.12,.65)});
+  }
+}
+
+function addIron(x,y){
+  ironNodes.push({
+    x,y,r:rand(18,28),phase:rand(0,TAU),iron:1,colonized:false
+  });
+  if(Math.random()<.85){
+    competitors.push({
+      x:x+rand(-26,26),y:y+rand(-24,24),r:rand(10,18),phase:rand(0,TAU),vigor:1,attachedTo:ironNodes[ironNodes.length-1]
+    });
+  }
+  if(ironNodes.length>12)ironNodes.shift();
+  if(competitors.length>20)competitors.shift();
+}
+
+function seedIron(){
+  ironNodes=[];competitors=[];
+  addIron(W*.66,H*.26);
+  addIron(W*.74,H*.55);
+  addIron(W*.62,H*.80);
+}
+
+function createCell(){
+  const c={
+    x:rand(W*.42,W*.92),y:rand(H*.12,H*.90),
+    angle:rand(0,TAU),vx:rand(-1,1),vy:rand(-1,1),
+    size:rand(.76,1.16),phase:rand(0,TAU),bodyPhase:rand(0,TAU),
+    state:"free",attachU:null,attachSide:Math.random()<.5?-1:1,
+    target:null,timer:rand(.4,1.8),trail:[],
+    flagella:[]
+  };
+  const m=Math.hypot(c.vx,c.vy)||1;c.vx/=m;c.vy/=m;
+  const nf=Math.floor(rand(3,6));
+  for(let i=0;i<nf;i++){
+    c.flagella.push({
+      phase:rand(0,TAU),
+      len:rand(4.0,5.4),
+      spread:lerp(-.34,.34,nf===1?.5:i/(nf-1)),
+      segs:Array.from({length:Math.floor(rand(8,12))},()=>({x:0,y:0}))
+    });
+  }
+  return c;
+}
+
+function spawnCell(){cells.push(createCell())}
+function syncPopulation(){while(cells.length<P.count)spawnCell();while(cells.length>P.count)cells.pop()}
+
+function resetWorld(){
+  time=0;cells=[];halos=[];complexes=[];
+  makeRoot();seedDust();seedIron();syncPopulation();updateStats();
+}
+
+function nearestRoot(c){
+  let best={d:Infinity,u:0,p:null};
+  for(let i=0;i<root.length;i+=2){
+    const p=root[i],d=dist(c,p);
+    if(d<best.d)best={d,u:i/(root.length-1),p}
+  }
+  return best;
+}
+
+function nearestIron(c){
+  let best=null,bd=Infinity;
+  for(const n of ironNodes){
+    if(n.iron<=.03) continue;
+    const d=dist(c,n)/(n.iron||1);
+    if(d<bd){bd=d;best=n}
+  }
+  return best;
+}
+
+function attachCell(c,u){
+  c.state="attached";
+  c.attachU=clamp(u,0,1);
+  c.attachSide=Math.random()<.5?-1:1;
+}
+
+function updateFlag(c){
+  const ca=Math.cos(c.angle),sa=Math.sin(c.angle);
+  const rear={x:c.x-ca*14.5*c.size,y:c.y-sa*14.5*c.size};
+  const px=-sa,py=ca;
+
+  for(const f of c.flagella){
+    const baseA=c.angle+Math.PI+f.spread;
+    const dirX=Math.cos(baseA),dirY=Math.sin(baseA);
+    const sideX=-dirY,sideY=dirX;
+    let prev={x:rear.x,y:rear.y};
+
+    for(let i=0;i<f.segs.length;i++){
+      const u=(i+1)/f.segs.length;
+      const wave=Math.sin(time*(5.7+P.motility*1.5)-i*.82+f.phase)*
+        (.45+P.motility)*(2.7+u*6.4);
+      const tx=rear.x+dirX*(i+1)*f.len*c.size+sideX*wave;
+      const ty=rear.y+dirY*(i+1)*f.len*c.size+sideY*wave;
+      const s=f.segs[i];
+
+      if(s.x===0&&s.y===0){s.x=tx;s.y=ty}
+      s.x=lerp(s.x,tx,.24+u*.16);
+      s.y=lerp(s.y,ty,.24+u*.16);
+
+      const maxLen=f.len*c.size*1.3;
+      const d=Math.hypot(s.x-prev.x,s.y-prev.y)||1;
+      if(d>maxLen){
+        s.x=prev.x+(s.x-prev.x)/d*maxLen;
+        s.y=prev.y+(s.y-prev.y)/d*maxLen;
+      }
+      prev=s;
+    }
+  }
+}
+function emitSiderophore(c,target){
+  if(!$("#halo").checked) return;
+  halos.push({x:c.x,y:c.y,r:2,life:1,phase:rand(0,TAU),tx:target.x,ty:target.y});
+  if(halos.length>260)halos.shift();
+}
+
+function createComplex(source,target){
+  complexes.push({
+    x:source.x,y:source.y,
+    tx:target.x,ty:target.y,
+    vx:0,vy:0,life:1,phase:rand(0,TAU)
+  });
+  if(complexes.length>260)complexes.shift();
+}
+
+function updateCell(c,dt){
+  const rootN=nearestRoot(c);
+  const iron=nearestIron(c);
+
+  if(c.state==="attached"){
+    const p=rootAt(c.attachU);
+    c.x=p.x+c.attachSide*(p.r*.78+6)+Math.sin(time*2+c.phase)*1.4;
+    c.y=p.y+Math.sin(time*1.6+c.phase)*2.0;
+    c.angle=c.attachSide>0?Math.PI*.52:-Math.PI*.52;
+
+    if(iron){
+      const dIron=dist(c,iron);
+      if(dIron<230 && Math.random()<(.007+.017*P.sidero)*dt*60){
+        emitSiderophore(c,iron);
+      }
+      if(dIron<90 && iron.iron>.02 && Math.random()<(.004+.017*P.sidero)*dt*60){
+        iron.iron=Math.max(0, iron.iron-(.01+.03*P.sidero));
+        iron.colonized=true;
+        createComplex(iron,c);
+
+        for(const comp of competitors){
+          if(comp.attachedTo===iron || dist(comp,iron)<iron.r*2.2){
+            comp.vigor=Math.max(0, comp.vigor-(.02+.06*P.comp));
+          }
+        }
+      }
+    }
+
+    updateFlag(c);
+    return;
+  }
+
+  c.timer-=dt;
+  let desired=c.angle;
+
+  if(iron){
+    const aIron=Math.atan2(iron.y-c.y,iron.x-c.x);
+    const dIron=dist(c,iron);
+    const pullIron=P.chem*clamp(1-dIron/520,0,1);
+    desired=lerpAng(desired,aIron,.024*pullIron*dt*60);
+  }
+
+  const pRoot=rootAt(rootN.u);
+  const aRoot=Math.atan2(pRoot.y-c.y,pRoot.x-c.x);
+  const pullRoot=clamp(1-rootN.d/420,0,1);
+  desired=lerpAng(desired,aRoot,.014*(.35+.55*P.chem)*pullRoot*dt*60);
+  c.angle=desired;
+
+  if(c.timer<=0){
+    c.timer=rand(.35,1.25);
+    c.angle+=rand(-1.15,1.15)*(1-P.chem*.52);
+  }
+
+  const wobble=Math.sin(time*2.5+c.phase)*.048+Math.sin(time*6.1+c.phase*1.6)*.016;
+  c.angle+=wobble*(.55+P.motility*.7);
+
+  const speed=.42+P.motility*1.08;
+  c.vx=lerp(c.vx,Math.cos(c.angle),.10);
+  c.vy=lerp(c.vy,Math.sin(c.angle),.10);
+  c.x+=c.vx*speed*dt*60;
+  c.y+=c.vy*speed*dt*60;
+
+  const margin=28;
+  if(c.x<margin){c.x=margin;c.angle=Math.PI-c.angle}
+  if(c.x>W-margin){c.x=W-margin;c.angle=Math.PI-c.angle}
+  if(c.y<margin){c.y=margin;c.angle=-c.angle}
+  if(c.y>H-margin){c.y=H-margin;c.angle=-c.angle}
+
+  if(rootN.d<24 && Math.random()<(.006+.012*P.chem)*dt*60){
+    attachCell(c,rootN.u);
+    return;
+  }
+
+  c.trail.push({x:c.x,y:c.y,life:1});
+  if(c.trail.length>36)c.trail.shift();
+
+  updateFlag(c);
+}
+
+function update(dt){
+  syncPopulation();
+  cells.forEach(c=>updateCell(c,dt));
+  cells.forEach(c=>c.trail.forEach(p=>p.life-=dt*1.7));
+
+  halos.forEach(h=>{h.r+=dt*14;h.life-=dt*.58});
+  halos=halos.filter(h=>h.life>0);
+
+  complexes.forEach(c=>{
+    const dx=c.tx-c.x, dy=c.ty-c.y;
+    c.vx=lerp(c.vx,dx*.02,.08);
+    c.vy=lerp(c.vy,dy*.02,.08);
+    c.x+=c.vx*dt*60; c.y+=c.vy*dt*60;
+    if(Math.hypot(dx,dy)<10) c.life-=dt*1.2;
+    else c.life-=dt*.03;
+  });
+  complexes=complexes.filter(c=>c.life>0);
+
+  competitors.forEach(comp=>{
+    const target=comp.attachedTo;
+    if(target){
+      comp.x=lerp(comp.x,target.x+Math.sin(comp.phase)*target.r*1.4,dt*.2);
+      comp.y=lerp(comp.y,target.y+Math.cos(comp.phase)*target.r*1.1,dt*.2);
+    }
+  });
+
+  updateStats();
+}
+
+function drawBackground(){
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#0e281f");g.addColorStop(.55,"#071a14");g.addColorStop(1,"#06110e");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const rg=ctx.createRadialGradient(W*.37,H*.50,0,W*.37,H*.50,Math.max(W,H)*.64);
+  rg.addColorStop(0,"rgba(86,181,124,.13)");rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+
+  if($("#soil").checked){
+    for(const p of dust){
+      const yy=p.y+Math.sin(time*p.speed+p.phase)*2;
+      ctx.beginPath();ctx.arc(p.x,yy,p.r,0,TAU);
+      ctx.fillStyle=`rgba(198,217,188,${p.a})`;ctx.fill();
+    }
+  }
+
+  ctx.save();ctx.globalAlpha=.11;
+  for(let i=0;i<20;i++){
+    const px=(i*151.7)%W,py=(i*88.4)%H;
+    ctx.beginPath();ctx.ellipse(px,py,22+(i%5)*11,8+(i%4)*6,(i*.63)%TAU,0,TAU);
+    ctx.fillStyle="#020806";ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawRoot(){
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(126,240,194,.11)";ctx.lineWidth=72;ctx.stroke();
+
+  const g=ctx.createLinearGradient(W*.22,0,W*.36,0);
+  g.addColorStop(0,"#70432f");g.addColorStop(.5,"#b97850");g.addColorStop(1,"#6a382b");
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle=g;ctx.lineWidth=50;ctx.stroke();
+
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(255,218,179,.24)";ctx.lineWidth=34;ctx.stroke();
+
+  ctx.globalAlpha=.30;
+  for(let i=2;i<root.length-2;i+=3){
+    const p=root[i];
+    ctx.beginPath();ctx.ellipse(p.x,p.y,18,10,0,0,TAU);
+    ctx.strokeStyle="#f2bc92";ctx.lineWidth=1;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawIron(){
+  for(const n of ironNodes){
+    const rr=n.r*(1+Math.sin(time*1.8+n.phase)*.04);
+    const halo=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,rr*2.1);
+    halo.addColorStop(0,`rgba(255,211,111,${.16*n.iron})`);
+    halo.addColorStop(.45,`rgba(143,186,255,${.08*n.iron})`);
+    halo.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=halo;ctx.beginPath();ctx.arc(n.x,n.y,rr*2.1,0,TAU);ctx.fill();
+
+    ctx.save();ctx.translate(n.x,n.y);
+    const poly=7;
+    ctx.beginPath();
+    for(let i=0;i<poly;i++){
+      const a=i/poly*TAU+n.phase*.4;
+      const r=rr*(.72+Math.sin(i*1.7+n.phase)*.12)*(1-.28*(1-n.iron));
+      const x=Math.cos(a)*r, y=Math.sin(a)*r;
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.closePath();
+    const g=ctx.createLinearGradient(-rr,-rr,rr,rr);
+    g.addColorStop(0,"#63718a");
+    g.addColorStop(.45, n.iron>.45 ? "#a58b5e":"#8391a8");
+    g.addColorStop(1,"#425065");
+    ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle="rgba(214,227,248,.34)";ctx.lineWidth=1;ctx.stroke();
+
+    for(let i=0;i<3+Math.floor((1-n.iron)*6);i++){
+      const a=i/(3+Math.floor((1-n.iron)*6))*TAU+n.phase;
+      const r=rr*(.18+.38*(1-n.iron));
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*rr*.12,Math.sin(a)*rr*.12);
+      ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+      ctx.strokeStyle=`rgba(255,211,111,${.18+.38*(1-n.iron)})`;
+      ctx.lineWidth=.9;ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawCompetitors(){
+  for(const c of competitors){
+    const pulse=1+Math.sin(time*2.4+c.phase)*.06;
+    const rr=c.r*pulse*(.65+.35*c.vigor);
+    const g=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,rr*1.8);
+    g.addColorStop(0,`rgba(255,127,143,${.24*c.vigor})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(c.x,c.y,rr*1.8,0,TAU);ctx.fill();
+
+    ctx.save();ctx.translate(c.x,c.y);
+    for(let i=0;i<5;i++){
+      const a=i/5*TAU+c.phase;
+      ctx.beginPath();
+      ctx.ellipse(Math.cos(a)*rr*.35,Math.sin(a)*rr*.15,rr*.22,rr*.13,a,0,TAU);
+      ctx.fillStyle=`rgba(255,127,143,${.35+.45*c.vigor})`;ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function drawTrails(){
+  ctx.save();ctx.lineCap="round";
+  for(const c of cells){
+    if(c.trail.length<2 || c.state!=="free") continue;
+    ctx.beginPath();c.trail.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle="rgba(102,240,220,.08)";ctx.lineWidth=1;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFlag(c){
+  if(!$("#flagella").checked) return;
+  const ca=Math.cos(c.angle),sa=Math.sin(c.angle);
+  const bx=c.x-ca*14.5*c.size,by=c.y-sa*14.5*c.size;
+
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const f of c.flagella){
+    ctx.beginPath();ctx.moveTo(bx,by);
+    f.segs.forEach(s=>ctx.lineTo(s.x,s.y));
+    ctx.strokeStyle="rgba(185,248,231,.58)";
+    ctx.lineWidth=.82*c.size;ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawCell(c){
+  drawFlag(c);
+
+  ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.angle);
+  const pulse=1+Math.sin(time*3+c.bodyPhase)*.025;
+  ctx.scale(c.size*pulse,c.size/pulse);
+
+  // Fluorescent peripheral glow: stronger in attached cells.
+  ctx.shadowBlur=c.state==="attached"?18:12;
+  ctx.shadowColor=c.state==="attached"?"rgba(174,255,111,.42)":"rgba(102,240,220,.25)";
+
+  const g=ctx.createLinearGradient(-15,-4.2,15,4.2);
+  if(c.state==="attached"){
+    g.addColorStop(0,"#216d88");
+    g.addColorStop(.48,"#74b8d8");
+    g.addColorStop(.78,"#b6ef77");
+    g.addColorStop(1,"#285c69");
+  }else{
+    g.addColorStop(0,"#176f66");
+    g.addColorStop(.50,"#61d8c8");
+    g.addColorStop(.82,"#a9eb72");
+    g.addColorStop(1,"#154f49");
+  }
+
+  // Straight, thin rod with rounded ends.
+  roundRect(ctx,-15,-4.1,30,8.2,4.1);
+  ctx.fillStyle=g;ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Double membrane contour.
+  roundRect(ctx,-13.7,-3.1,27.4,6.2,3.1);
+  ctx.strokeStyle="rgba(232,255,243,.28)";
+  ctx.lineWidth=.75;ctx.stroke();
+
+  // Longitudinal nucleoid instead of transverse segmentation.
+  ctx.beginPath();
+  ctx.ellipse(-1,0,8.5,1.9,0,0,TAU);
+  ctx.fillStyle="rgba(235,255,249,.13)";
+  ctx.fill();
+
+  // Sparse cytoplasmic granules.
+  for(let i=0;i<5;i++){
+    const px=-10+i*5;
+    const py=Math.sin(time*1.65+c.phase+i)*1.15;
+    ctx.beginPath();ctx.arc(px,py,.85+(i%2)*.18,0,TAU);
+    ctx.fillStyle="rgba(246,255,251,.42)";ctx.fill();
+  }
+
+  // Polar flagellar insertion at the posterior pole.
+  ctx.beginPath();ctx.arc(-12.2,0,1.65,0,TAU);
+  ctx.fillStyle="rgba(218,255,188,.82)";ctx.fill();
+
+  // Fluorescent pyoverdine-like rim, purely stylistic.
+  ctx.beginPath();
+  ctx.moveTo(-10,-3.2);
+  ctx.lineTo(9,-3.2);
+  ctx.strokeStyle=c.state==="attached"
+    ?"rgba(190,255,105,.70)"
+    :"rgba(174,255,111,.38)";
+  ctx.lineWidth=1.0;ctx.stroke();
+
+  ctx.restore();
+}
+
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);
+  c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
+}
+function drawHalos(){
+  if(!$("#halo").checked) return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const h of halos){
+    const g=ctx.createRadialGradient(h.x,h.y,0,h.x,h.y,h.r*1.8);
+    g.addColorStop(0,`rgba(102,240,220,${.25*h.life})`);
+    g.addColorStop(.42,`rgba(143,186,255,${.11*h.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(h.x,h.y,h.r*1.8,0,TAU);ctx.fill();
+    ctx.strokeStyle=`rgba(102,240,220,${.33*h.life})`;ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,TAU);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawComplexes(){
+  if(!$("#flow").checked) return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const c of complexes){
+    const r=3.4*(1+Math.sin(time*4+c.phase)*.12);
+    const g=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,r*3.2);
+    g.addColorStop(0,`rgba(255,223,140,${.95*c.life})`);
+    g.addColorStop(.34,`rgba(255,211,111,${.42*c.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(c.x,c.y,r*3.2,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function draw(){
+  drawBackground();
+  drawRoot();
+  drawIron();
+  drawCompetitors();
+  drawTrails();
+
+  const ordered=[...cells].sort((a,b)=>a.y-b.y);
+  for(const c of ordered) drawCell(c);
+
+  drawHalos();
+  drawComplexes();
+
+  const v=ctx.createRadialGradient(W*.52,H*.5,Math.min(W,H)*.2,W*.52,H*.5,Math.max(W,H)*.72);
+  v.addColorStop(.56,"rgba(0,0,0,0)");
+  v.addColorStop(1,"rgba(0,0,0,.48)");
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function updateStats(){
+  const attached=cells.filter(c=>c.state==="attached").length;
+  const weak=competitors.filter(c=>c.vigor<.5).length;
+  $("#free").textContent=cells.length-attached;
+  $("#attached").textContent=attached;
+  $("#complexes").textContent=complexes.length;
+  $("#weak").textContent=weak;
+}
+
+function frame(ts){
+  if(!last)last=ts;
+  const dt=Math.min(.033,(ts-last)/1000);last=ts;
+  if(!paused){time+=dt;update(dt)}
+  draw();requestAnimationFrame(frame);
+}
+
+function bind(id,out,key,scale,fmt){
+  const e=$(id);
+  const sync=()=>{P[key]=+e.value*scale;$(out).textContent=fmt(e.value);if(key==="count")syncPopulation()};
+  e.addEventListener("input",sync);sync();
+}
+bind("#count","#countV","count",1,v=>v);
+bind("#motility","#motilityV","motility",.01,v=>v+"%");
+bind("#chem","#chemV","chem",.01,v=>v+"%");
+bind("#sidero","#sideroV","sidero",.01,v=>v+"%");
+bind("#comp","#compV","comp",.01,v=>v+"%");
+
+$("#toggle").onclick=()=>{
+  paused=!paused;
+  $("#toggle").textContent=paused?"Continuar":"Pausar";
+  $("#toggle").classList.toggle("primary",!paused);
+};
+$("#reset").onclick=resetWorld;
+canvas.addEventListener("pointerdown",e=>{
+  const r=canvas.getBoundingClientRect();
+  addIron(e.clientX-r.left,e.clientY-r.top);
+});
+
+addEventListener("resize",resize,{passive:true});
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+[
+  {
+    "id": "micorriza",
+    "name": "Micorriza",
+    "scientific": "Fungo micorrízico arbuscular",
+    "file": "micorriza_procedural.html",
+    "type": "Simbiose fúngica",
+    "role": "Ampliação da exploração do solo e aquisição de fósforo",
+    "signature": "Rede hifal ramificada, arbúsculos e fluxo P ↔ C",
+    "mechanics": [
+      "crescimento apical",
+      "ramificação",
+      "quimiotropismo",
+      "fluxo bidirecional"
+    ],
+    "accent": "#d6afff"
+  },
+  {
+    "id": "rhizobium",
+    "name": "Rhizobium",
+    "scientific": "Bactéria simbiótica nodulante",
+    "file": "rhizobium_procedural.html",
+    "type": "Simbiose bacteriana",
+    "role": "Colonização inicial associada à fixação biológica de nitrogênio",
+    "signature": "Bastonete segmentado, flagelos e adesão ao pelo radicular",
+    "mechanics": [
+      "quimiotaxia",
+      "nado",
+      "adesão",
+      "sinal Nod estilizado"
+    ],
+    "accent": "#79e8dc"
+  },
+  {
+    "id": "oportunista",
+    "name": "Fungo oportunista",
+    "scientific": "Arquétipo funcional inespecífico",
+    "file": "fungo_oportunista_lesoes_v2.html",
+    "type": "Pressão biológica",
+    "role": "Exploração de tecidos enfraquecidos e lesões radiculares",
+    "signature": "Busca esparsa seguida de colonização densa da lesão",
+    "mechanics": [
+      "detecção de lesão",
+      "invasão",
+      "ramificação local",
+      "esporulação"
+    ],
+    "accent": "#ff8297"
+  },
+  {
+    "id": "pgpb-p",
+    "name": "PGPB solubilizadora",
+    "scientific": "Comunidade funcional solubilizadora de fósforo",
+    "file": "pgpb_solubilizadora_procedural.html",
+    "type": "Nutrição vegetal",
+    "role": "Mobilização de fósforo ligado a depósitos minerais",
+    "signature": "Pili, biofilme, secreção localizada e dissolução mineral",
+    "mechanics": [
+      "twitching",
+      "adesão",
+      "biofilme",
+      "solubilização"
+    ],
+    "accent": "#8db8ff"
+  },
+  {
+    "id": "trichoderma",
+    "name": "Trichoderma",
+    "scientific": "Fungo de biocontrole",
+    "file": "trichoderma_procedural.html",
+    "type": "Biocontrole",
+    "role": "Reconhecimento, enrolamento e degradação de hifas-alvo",
+    "signature": "Hifas verdes que envolvem e fragmentam o fungo-alvo",
+    "mechanics": [
+      "reconhecimento",
+      "enrolamento",
+      "enzimas líticas",
+      "micoparasitismo"
+    ],
+    "accent": "#8df0a8"
+  },
+  {
+    "id": "azospirillum",
+    "name": "Azospirillum",
+    "scientific": "Bactéria associativa promotora de crescimento",
+    "file": "azospirillum_procedural.html",
+    "type": "Arquitetura radicular",
+    "role": "Colonização da raiz e estímulo estilizado de raízes laterais",
+    "signature": "Célula curva, flagelo polar e pulsos fitormonais",
+    "mechanics": [
+      "quimiotaxia",
+      "colonização",
+      "sinal hormonal",
+      "raízes laterais"
+    ],
+    "accent": "#72e8dd"
+  },
+  {
+    "id": "bacillus",
+    "name": "Bacillus",
+    "scientific": "Bactéria formadora de endósporos",
+    "file": "bacillus_procedural.html",
+    "type": "Resiliência e proteção",
+    "role": "Biofilme, resistência a estresse e metabólitos protetores",
+    "signature": "Bastonetes, flagelos peritríquios, microcolônias e endósporos",
+    "mechanics": [
+      "adesão",
+      "biofilme",
+      "esporulação",
+      "proteção"
+    ],
+    "accent": "#70e5d6"
+  },
+  {
+    "id": "pseudomonas",
+    "name": "Pseudomonas",
+    "scientific": "Bactéria produtora de sideróforos",
+    "file": "pseudomonas_sideroforo_morfologia_v2.html",
+    "type": "Competição por ferro",
+    "role": "Quelação e captação de ferro na rizosfera",
+    "signature": "Bastonete reto e fino, tufo polar e fluorescência periférica",
+    "mechanics": [
+      "quimiotaxia",
+      "sideróforos",
+      "captação de ferro",
+      "competição"
+    ],
+    "accent": "#b9f36f"
+  }
+]

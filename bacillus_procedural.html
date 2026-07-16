@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Bacillus procedural — Beans for a Living Soil</title>
+<style>
+:root{
+  --bg:#07120f;--panel:#0a1c17eb;--line:#c9ffe01b;--text:#f1fff8;
+  --muted:#a9cab9;--green:#83efaf;--cyan:#70e5d6;--gold:#ffd077;--amber:#ffb86e;--violet:#c7a5ff
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body{
+  background:
+    radial-gradient(circle at 14% 18%,#2d785136,transparent 27%),
+    radial-gradient(circle at 84% 14%,#b27a3e22,transparent 24%),
+    linear-gradient(145deg,#07120f,#0a1e18 54%,#06100d)
+}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.stage,.panel{
+  border:1px solid var(--line);border-radius:24px;
+  background:linear-gradient(160deg,#10291fef,#06130fee);
+  box-shadow:0 24px 80px #0007,inset 0 1px 0 #fff0d
+}
+.stage{position:relative;min-width:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;z-index:3;left:22px;top:18px;pointer-events:none;text-shadow:0 3px 20px #0008}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+.back-btn{pointer-events:auto;display:inline-flex;align-items:center;margin-bottom:12px;padding:6px 12px;background:#ffffff14;border:1px solid #ffffff24;border-radius:8px;color:#d7f7e8;font-size:11px;text-decoration:none;font-weight:600;backdrop-filter:blur(4px);transition:.2s}.back-btn:hover{background:#ffffff24;transform:translateY(-1px)}
+h1{font-size:clamp(24px,4vw,48px);line-height:.95;letter-spacing:-.045em;margin:7px 0}
+.sub{max-width:570px;font-size:13px;line-height:1.45;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.badge,.hint{border:1px solid #ffffff18;background:#06161199;backdrop-filter:blur(8px)}
+.badge{padding:6px 9px;border-radius:999px;font-size:10px}
+.hint{position:absolute;left:20px;bottom:18px;z-index:3;padding:9px 12px;border-radius:999px;font-size:11px;color:#d7f7e8}
+.legend{position:absolute;right:16px;bottom:16px;z-index:3;display:grid;gap:5px;padding:9px 11px;border-radius:13px;background:#061611aa;border:1px solid #fff1a}
+.legend div{font-size:10px;color:#cbe9da;display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 13px currentColor}
+.panel{padding:18px;overflow:auto}
+.sec{padding:14px 0;border-bottom:1px solid #ffffff12}.sec:first-child{padding-top:0}.sec:last-child{border-bottom:0}
+h2{font-size:13px;margin:0 0 12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{
+  border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;background:#ffffff0d;
+  color:var(--text);font:inherit;font-weight:750;cursor:pointer;transition:.18s
+}
+button:hover{transform:translateY(-1px);background:#ffffff16}
+.primary{background:linear-gradient(135deg,#91f5b6,#4bc986);color:#062015;border-color:transparent}
+.wide{grid-column:1/-1}
+.control{margin:12px 0}
+.control label{display:flex;justify-content:space-between;font-size:12px;color:#cae5d7;margin-bottom:7px}
+.value{font-weight:800;color:var(--green)}
+input[type=range]{width:100%;accent-color:#7ce6a2}
+.toggle{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cae5d7;padding:9px 10px;margin:7px 0;border-radius:11px;background:#ffffff08}
+.switch{position:relative;width:40px;height:23px}.switch input{opacity:0}
+.slider{position:absolute;inset:0;border-radius:99px;background:#263a32}
+.slider:before{content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+.slider{background:#55c987}.switch input:checked+.slider:before{transform:translateX(17px)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px;border:1px solid #ffffff0d;border-radius:12px;background:#ffffff08}
+.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
+.note{font-size:11px;line-height:1.5;color:var(--muted)}.note strong{color:#effff6}
+.pills{margin-top:8px}.pill{display:inline-block;margin:3px 3px 0 0;padding:5px 8px;border-radius:999px;border:1px solid #9af7bd22;background:#9af7bd10;font-size:10px;color:#dff8ea}
+@media(max-width:900px){
+  body{overflow:auto}#app{height:auto;min-height:100%;grid-template-columns:1fr;padding:10px}
+  .stage{display:flex;flex-direction:column;height:82vh;min-height:600px}canvas{flex:1;min-height:400px}
+  .brand{position:relative;left:0;top:0;padding:18px 18px 22px;background:#06130fd9;border-bottom:1px solid var(--line);order:-1;pointer-events:auto}
+  .panel{overflow:visible}
+}
+@media(max-width:560px){
+  .stage,.panel{border-radius:18px}.stage{height:88vh;min-height:550px}
+  .brand{padding:15px 15px 18px}.sub{max-width:none}
+  .hint{left:13px;bottom:13px;max-width:74%;white-space:normal;border-radius:12px}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="stage">
+<canvas id="scene" aria-label="Visualização procedural de Bacillus"></canvas>
+<div class="brand">
+  <a href="index.html" class="back-btn">← Voltar para a biblioteca</a>
+  <div class="eyebrow">Beans for a Living Soil · Microbe Lab</div>
+  <h1>Bacillus procedural</h1>
+  <div class="sub">Bastonetes móveis aproximam-se da raiz, formam microcolônias e matriz de biofilme; sob estresse, parte da população diferencia endósporos e intensifica halos protetores.</div>
+  <div class="badges">
+    <span class="badge">bastonetes</span>
+    <span class="badge">flagelos peritríquios</span>
+    <span class="badge">biofilme</span>
+    <span class="badge">endósporos</span>
+  </div>
+</div>
+<div class="hint">Clique ou toque para criar uma nova zona de estresse do solo.</div>
+<div class="legend">
+  <div><span class="dot" style="color:#70e5d6;background:#70e5d6"></span>Bacillus e biofilme</div>
+  <div><span class="dot" style="color:#ffb86e;background:#ffb86e"></span>Zona de estresse</div>
+  <div><span class="dot" style="color:#c7a5ff;background:#c7a5ff"></span>Endósporos</div>
+</div>
+</main>
+
+<aside class="panel">
+<div class="sec">
+  <h2>Controle</h2>
+  <div class="buttons">
+    <button id="toggle" class="primary">Pausar</button>
+    <button id="reset">Nova comunidade</button>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comportamento procedural</h2>
+  <div class="control">
+    <label>Número de células <span id="countV" class="value">30</span></label>
+    <input id="count" type="range" min="8" max="65" value="30" step="1">
+  </div>
+  <div class="control">
+    <label>Mobilidade <span id="motilityV" class="value">70%</span></label>
+    <input id="motility" type="range" min="0" max="100" value="70" step="1">
+  </div>
+  <div class="control">
+    <label>Formação de biofilme <span id="biofilmV" class="value">72%</span></label>
+    <input id="biofilm" type="range" min="0" max="100" value="72" step="1">
+  </div>
+  <div class="control">
+    <label>Esporulação <span id="sporV" class="value">62%</span></label>
+    <input id="spor" type="range" min="0" max="100" value="62" step="1">
+  </div>
+  <div class="control">
+    <label>Metabólitos protetores <span id="metabV" class="value">66%</span></label>
+    <input id="metab" type="range" min="0" max="100" value="66" step="1">
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Camadas</h2>
+  <div class="toggle">Flagelos curtos
+    <label class="switch"><input id="flagella" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Matriz do biofilme
+    <label class="switch"><input id="matrix" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Halos protetores
+    <label class="switch"><input id="halo" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Partículas do solo
+    <label class="switch"><input id="soil" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comunidade em tempo real</h2>
+  <div class="stats">
+    <div class="stat"><b id="free">0</b><span>células livres</span></div>
+    <div class="stat"><b id="attached">0</b><span>células aderidas</span></div>
+    <div class="stat"><b id="spores">0</b><span>endósporos</span></div>
+    <div class="stat"><b id="islands">0</b><span>ilhas de biofilme</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Leitura biológica</h2>
+  <div class="note">
+    <strong>O que está sendo representado:</strong> bacilos móveis colonizam a raiz, agregam-se em microcolônias, secretam matriz extracelular e, diante de estresse, parte da população diferencia endósporos e reforça a proteção local.
+    <div class="pills">
+      <span class="pill">adesão</span>
+      <span class="pill">microcolônia</span>
+      <span class="pill">biofilme</span>
+      <span class="pill">resistência</span>
+    </div>
+    <p>É uma visualização funcional, não uma simulação quantitativa de crescimento, esporulação ou antibiose.</p>
+  </div>
+</div>
+</aside>
+</div>
+
+<script>
+(()=>{"use strict";
+
+const canvas=document.querySelector("#scene");
+const ctx=canvas.getContext("2d",{alpha:false});
+const $=q=>document.querySelector(q);
+const TAU=Math.PI*2;
+
+let W=0,H=0,DPR=1,last=0,time=0,paused=false;
+let root=[],cells=[],stressZones=[],dust=[],matrixBlobs=[],halos=[];
+let P={count:30,motility:.70,biofilm:.72,spor:.62,metab:.66};
+
+const rand=(a=0,b=1)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const lerpAng=(a,b,t)=>a+norm(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=r.width;H=r.height;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  resetWorld();
+}
+
+function makeRoot(){
+  root=[];
+  const xBase=W*.28;
+  const n=52;
+  for(let i=0;i<n;i++){
+    const u=i/(n-1);
+    root.push({
+      x:xBase+Math.sin(u*5.6+.3)*W*.018+Math.sin(u*12.4)*W*.005,
+      y:lerp(-28,H+34,u),
+      r:lerp(33,16,u)
+    });
+  }
+}
+
+function rootAt(u){
+  u=clamp(u,0,1);
+  const f=u*(root.length-1);
+  const i=Math.floor(f),j=Math.min(root.length-1,i+1),q=f-i;
+  return {x:lerp(root[i].x,root[j].x,q),y:lerp(root[i].y,root[j].y,q),r:lerp(root[i].r,root[j].r,q)};
+}
+
+function seedDust(){
+  dust=[];
+  for(let i=0;i<Math.floor(W*H/3400);i++){
+    dust.push({x:rand(0,W),y:rand(0,H),r:rand(.8,5),a:rand(.04,.17),phase:rand(0,TAU),speed:rand(.12,.65)});
+  }
+}
+
+function addStress(x,y){
+  stressZones.push({x,y,r:rand(34,58),phase:rand(0,TAU),intensity:rand(.75,1.25)});
+  if(stressZones.length>12)stressZones.shift();
+}
+
+function seedStress(){
+  stressZones=[];
+  addStress(W*.70,H*.30);
+  addStress(W*.76,H*.68);
+  addStress(W*.56,H*.82);
+}
+
+function createCell(){
+  const c={
+    x:rand(W*.46,W*.92),y:rand(H*.12,H*.90),
+    angle:rand(0,TAU),vx:rand(-1,1),vy:rand(-1,1),
+    size:rand(.82,1.22),phase:rand(0,TAU),bodyPhase:rand(0,TAU),
+    state:"free",attachU:null,attachSide:Math.random()<.5?-1:1,
+    sporulating:false,sporeLevel:0,colonyId:null,timer:rand(.4,1.8),
+    trail:[],flagella:[]
+  };
+  const m=Math.hypot(c.vx,c.vy)||1;c.vx/=m;c.vy/=m;
+  const nf=Math.floor(rand(5,9));
+  for(let i=0;i<nf;i++){
+    c.flagella.push({
+      baseA:i/nf*TAU+rand(-.35,.35),
+      len:rand(8,15),
+      phase:rand(0,TAU),
+      segs:Array.from({length:Math.floor(rand(3,5))},()=>({x:0,y:0}))
+    });
+  }
+  return c;
+}
+
+function spawnCell(){cells.push(createCell())}
+function syncPopulation(){while(cells.length<P.count)spawnCell();while(cells.length>P.count)cells.pop()}
+
+function resetWorld(){
+  time=0;cells=[];matrixBlobs=[];halos=[];
+  makeRoot();seedDust();seedStress();syncPopulation();updateStats();
+}
+
+function nearestRoot(c){
+  let best={d:Infinity,u:0,p:null};
+  for(let i=0;i<root.length;i+=2){
+    const p=root[i],d=dist(c,p);
+    if(d<best.d)best={d,u:i/(root.length-1),p}
+  }
+  return best;
+}
+
+function nearestStress(c){
+  let best=null,bd=Infinity;
+  for(const s of stressZones){
+    const d=dist(c,s)/(s.intensity||1);
+    if(d<bd){bd=d;best=s}
+  }
+  return best;
+}
+
+function cellColonyKey(c){
+  if(c.attachU==null)return null;
+  return Math.round(c.attachU*18)+"_"+c.attachSide;
+}
+
+function attachCell(c,u){
+  c.state="attached";
+  c.attachU=clamp(u,0,1);
+  c.attachSide=Math.random()<.5?-1:1;
+  c.colonyId=cellColonyKey(c);
+}
+
+function updateFlagella(c){
+  if(!$("#flagella").checked)return;
+  const ca=Math.cos(c.angle),sa=Math.sin(c.angle),px=-sa,py=ca;
+  for(const f of c.flagella){
+    const baseA=c.angle+f.baseA;
+    let bx=c.x+Math.cos(baseA)*4*c.size,by=c.y+Math.sin(baseA)*4*c.size;
+    let prev={x:bx,y:by};
+    for(let i=0;i<f.segs.length;i++){
+      const u=(i+1)/f.segs.length;
+      const wave=Math.sin(time*6.1-i*.85+f.phase)*P.motility*(1.2+u*1.6);
+      const tx=bx+Math.cos(baseA)*(i+1)*f.len*.55*c.size+px*wave;
+      const ty=by+Math.sin(baseA)*(i+1)*f.len*.55*c.size+py*wave;
+      const s=f.segs[i];
+      if(s.x===0&&s.y===0){s.x=tx;s.y=ty}
+      s.x=lerp(s.x,tx,.28+u*.14); s.y=lerp(s.y,ty,.28+u*.14);
+      prev=s;
+    }
+  }
+}
+
+function updateCell(c,dt){
+  const stress=nearestStress(c);
+
+  if(c.state==="attached"){
+    const p=rootAt(c.attachU);
+    c.x=p.x+c.attachSide*(p.r*.78+6)+Math.sin(time*2+c.phase)*1.5;
+    c.y=p.y+Math.sin(time*1.6+c.phase)*2.2;
+    c.angle=c.attachSide>0?Math.PI*.52:-Math.PI*.52;
+
+    const ds=stress?dist(c,stress):999;
+    const stressInfluence=clamp(1-ds/170,0,1);
+
+    if(P.biofilm>.18 && Math.random()<(.012+.020*P.biofilm)*dt*60){
+      matrixBlobs.push({
+        x:c.x+rand(-12,12),y:c.y+rand(-12,12),r:rand(5,12),
+        life:1,phase:rand(0,TAU),colonyId:c.colonyId
+      });
+      if(matrixBlobs.length>220)matrixBlobs.shift();
+    }
+
+    if($("#halo").checked && Math.random()<(.006+.015*P.metab)*(0.4+stressInfluence)*dt*60){
+      halos.push({x:c.x,y:c.y,r:2,life:1,phase:rand(0,TAU),colonyId:c.colonyId});
+      if(halos.length>220)halos.shift();
+    }
+
+    const sporChance=(.001+.008*P.spor)*(0.25+stressInfluence)*dt*60;
+    if(!c.sporulating && Math.random()<sporChance) c.sporulating=true;
+    if(c.sporulating) c.sporeLevel=clamp(c.sporeLevel+dt*(.18+.45*P.spor),0,1);
+
+    updateFlagella(c);
+    return;
+  }
+
+  c.timer-=dt;
+  const rootN=nearestRoot(c);
+  const targetP=rootAt(rootN.u);
+  const aRoot=Math.atan2(targetP.y-c.y,targetP.x-c.x);
+  const pullRoot=clamp(1-rootN.d/420,0,1);
+  c.angle=lerpAng(c.angle,aRoot,.018*(.35+.65*P.motility)*pullRoot*dt*60);
+
+  if(c.timer<=0){
+    c.timer=rand(.35,1.25);
+    c.angle+=rand(-1.05,1.05)*(1-P.motility*.5);
+  }
+
+  const wobble=Math.sin(time*2.8+c.phase)*.045+Math.sin(time*6.3+c.phase*1.7)*.016;
+  c.angle+=wobble*(.45+P.motility*.7);
+
+  const speed=.36+P.motility*1.05;
+  c.vx=lerp(c.vx,Math.cos(c.angle),.10);
+  c.vy=lerp(c.vy,Math.sin(c.angle),.10);
+  c.x+=c.vx*speed*dt*60;
+  c.y+=c.vy*speed*dt*60;
+
+  const margin=28;
+  if(c.x<margin){c.x=margin;c.angle=Math.PI-c.angle}
+  if(c.x>W-margin){c.x=W-margin;c.angle=Math.PI-c.angle}
+  if(c.y<margin){c.y=margin;c.angle=-c.angle}
+  if(c.y>H-margin){c.y=H-margin;c.angle=-c.angle}
+
+  if(rootN.d<25 && Math.random()<(.006+.016*P.biofilm)*dt*60){
+    attachCell(c,rootN.u);
+    return;
+  }
+
+  c.trail.push({x:c.x,y:c.y,life:1});
+  if(c.trail.length>26)c.trail.shift();
+
+  updateFlagella(c);
+}
+
+function update(dt){
+  syncPopulation();
+  cells.forEach(c=>updateCell(c,dt));
+  cells.forEach(c=>c.trail.forEach(p=>p.life-=dt*1.8));
+
+  matrixBlobs.forEach(b=>b.life=Math.max(.16,b.life-dt*.012));
+  halos.forEach(h=>{h.r+=dt*14;h.life-=dt*.55});
+  halos=halos.filter(h=>h.life>0);
+
+  updateStats();
+}
+
+function drawBackground(){
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#0e281f");g.addColorStop(.55,"#071a14");g.addColorStop(1,"#06110e");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const rg=ctx.createRadialGradient(W*.37,H*.50,0,W*.37,H*.50,Math.max(W,H)*.64);
+  rg.addColorStop(0,"rgba(86,181,124,.13)");rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+
+  if($("#soil").checked){
+    for(const p of dust){
+      const yy=p.y+Math.sin(time*p.speed+p.phase)*2;
+      ctx.beginPath();ctx.arc(p.x,yy,p.r,0,TAU);
+      ctx.fillStyle=`rgba(198,217,188,${p.a})`;ctx.fill();
+    }
+  }
+
+  ctx.save();ctx.globalAlpha=.11;
+  for(let i=0;i<20;i++){
+    const px=(i*151.7)%W,py=(i*88.4)%H;
+    ctx.beginPath();ctx.ellipse(px,py,22+(i%5)*11,8+(i%4)*6,(i*.63)%TAU,0,TAU);
+    ctx.fillStyle="#020806";ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawStress(){
+  for(const s of stressZones){
+    const rr=s.r*(1+Math.sin(time*1.8+s.phase)*.05);
+    const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,rr*1.8);
+    g.addColorStop(0,"rgba(255,184,110,.22)");
+    g.addColorStop(.45,"rgba(255,137,66,.09)");
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,rr*1.8,0,TAU);ctx.fill();
+
+    ctx.save();ctx.translate(s.x,s.y);
+    for(let i=0;i<8;i++){
+      const a=i/8*TAU+s.phase;
+      const r=rr*(.26+((i%3)*.16));
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*r*.25,Math.sin(a)*r*.25);
+      ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+      ctx.strokeStyle="rgba(255,196,126,.45)";
+      ctx.lineWidth=1.2;ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawRoot(){
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(126,240,194,.11)";ctx.lineWidth=72;ctx.stroke();
+
+  const g=ctx.createLinearGradient(W*.22,0,W*.36,0);
+  g.addColorStop(0,"#70432f");g.addColorStop(.5,"#b97850");g.addColorStop(1,"#6a382b");
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle=g;ctx.lineWidth=50;ctx.stroke();
+
+  ctx.beginPath();root.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(255,218,179,.24)";ctx.lineWidth=34;ctx.stroke();
+
+  ctx.globalAlpha=.30;
+  for(let i=2;i<root.length-2;i+=3){
+    const p=root[i];
+    ctx.beginPath();ctx.ellipse(p.x,p.y,18,10,0,0,TAU);
+    ctx.strokeStyle="#f2bc92";ctx.lineWidth=1;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawMatrix(){
+  if(!$("#matrix").checked)return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const b of matrixBlobs){
+    const pulse=1+Math.sin(time*1.6+b.phase)*.08;
+    const g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r*pulse);
+    g.addColorStop(0,`rgba(112,229,214,${.12*b.life})`);
+    g.addColorStop(.55,`rgba(112,229,214,${.08*b.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,b.r*pulse,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawHalos(){
+  if(!$("#halo").checked)return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const h of halos){
+    const g=ctx.createRadialGradient(h.x,h.y,0,h.x,h.y,h.r*1.8);
+    g.addColorStop(0,`rgba(255,208,119,${.24*h.life})`);
+    g.addColorStop(.52,`rgba(112,229,214,${.10*h.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(h.x,h.y,h.r*1.8,0,TAU);ctx.fill();
+    ctx.strokeStyle=`rgba(255,208,119,${.30*h.life})`;ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,TAU);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTrails(){
+  ctx.save();ctx.lineCap="round";
+  for(const c of cells){
+    if(c.trail.length<2 || c.state!=="free") continue;
+    ctx.beginPath();c.trail.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle="rgba(112,229,214,.08)";ctx.lineWidth=1;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFlagella(c){
+  if(!$("#flagella").checked)return;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const f of c.flagella){
+    const baseA=c.angle+f.baseA;
+    const bx=c.x+Math.cos(baseA)*4*c.size, by=c.y+Math.sin(baseA)*4*c.size;
+    ctx.beginPath();ctx.moveTo(bx,by);
+    f.segs.forEach(s=>ctx.lineTo(s.x,s.y));
+    ctx.strokeStyle=c.sporulating?"rgba(199,165,255,.58)":"rgba(186,244,225,.52)";
+    ctx.lineWidth=.8*c.size;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawCell(c){
+  drawFlagella(c);
+
+  ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.angle);
+  const pulse=1+Math.sin(time*3+c.bodyPhase)*.035;
+  ctx.scale(c.size*pulse,c.size/pulse);
+
+  ctx.shadowBlur=14;
+  ctx.shadowColor=c.sporulating?"rgba(199,165,255,.35)":"rgba(112,229,214,.28)";
+
+  const g=ctx.createLinearGradient(-12,-5,12,5);
+  if(c.sporulating){
+    g.addColorStop(0,"#6a569e");g.addColorStop(.52,"#c7a5ff");g.addColorStop(1,"#4b3b79");
+  }else{
+    g.addColorStop(0,"#2b847b");g.addColorStop(.52,"#70e5d6");g.addColorStop(1,"#1d6058");
+  }
+  ctx.fillStyle=g;
+  roundRect(ctx,-12,-4.8,24,9.6,4.6);ctx.fill();
+  ctx.shadowBlur=0;
+
+  // articulated internal bands
+  for(let i=-7;i<=7;i+=3.5){
+    ctx.beginPath();ctx.moveTo(i,-4.1);ctx.lineTo(i,4.1);
+    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=.7;ctx.stroke();
+  }
+
+  // granules
+  for(let i=0;i<4;i++){
+    const px=-6+i*4.1;
+    const py=Math.sin(time*1.7+c.phase+i)*1.2;
+    ctx.beginPath();ctx.arc(px,py,1.0+(i%2)*.2,0,TAU);
+    ctx.fillStyle="rgba(245,255,251,.40)";ctx.fill();
+  }
+
+  // endospore
+  if(c.sporeLevel>0){
+    const rg=ctx.createRadialGradient(2,0,0,2,0,4.8);
+    rg.addColorStop(0,`rgba(255,250,220,${.65*c.sporeLevel})`);
+    rg.addColorStop(.45,`rgba(199,165,255,${.60*c.sporeLevel})`);
+    rg.addColorStop(1,`rgba(116,90,176,${.92*c.sporeLevel})`);
+    ctx.fillStyle=rg;
+    ctx.beginPath();ctx.ellipse(2,0,4.2,3.2,0,0,TAU);ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
+}
+
+function draw(){
+  drawBackground();
+  drawStress();
+  drawRoot();
+  drawMatrix();
+  drawTrails();
+
+  const ordered=[...cells].sort((a,b)=>a.y-b.y);
+  for(const c of ordered) drawCell(c);
+
+  drawHalos();
+
+  const v=ctx.createRadialGradient(W*.52,H*.5,Math.min(W,H)*.2,W*.52,H*.5,Math.max(W,H)*.72);
+  v.addColorStop(.56,"rgba(0,0,0,0)");
+  v.addColorStop(1,"rgba(0,0,0,.48)");
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function updateStats(){
+  const attached=cells.filter(c=>c.state==="attached").length;
+  const spores=cells.filter(c=>c.sporeLevel>.2).length;
+  const islands=new Set(matrixBlobs.map(b=>b.colonyId)).size;
+  $("#free").textContent=cells.length-attached;
+  $("#attached").textContent=attached;
+  $("#spores").textContent=spores;
+  $("#islands").textContent=islands;
+}
+
+function frame(ts){
+  if(!last)last=ts;
+  const dt=Math.min(.033,(ts-last)/1000);last=ts;
+  if(!paused){time+=dt;update(dt)}
+  draw();requestAnimationFrame(frame);
+}
+
+function bind(id,out,key,scale,fmt){
+  const e=$(id);
+  const sync=()=>{P[key]=+e.value*scale;$(out).textContent=fmt(e.value);if(key==="count")syncPopulation()};
+  e.addEventListener("input",sync);sync();
+}
+bind("#count","#countV","count",1,v=>v);
+bind("#motility","#motilityV","motility",.01,v=>v+"%");
+bind("#biofilm","#biofilmV","biofilm",.01,v=>v+"%");
+bind("#spor","#sporV","spor",.01,v=>v+"%");
+bind("#metab","#metabV","metab",.01,v=>v+"%");
+
+$("#toggle").onclick=()=>{
+  paused=!paused;
+  $("#toggle").textContent=paused?"Continuar":"Pausar";
+  $("#toggle").classList.toggle("primary",!paused);
+};
+$("#reset").onclick=resetWorld;
+canvas.addEventListener("pointerdown",e=>{
+  const r=canvas.getBoundingClientRect();
+  addStress(e.clientX-r.left,e.clientY-r.top);
+});
+
+addEventListener("resize",resize,{passive:true});
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

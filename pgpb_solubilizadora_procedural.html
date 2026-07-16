@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>PGPB solubilizadora procedural — Beans for a Living Soil</title>
+<style>
+:root{
+  --bg:#07110f;--panel:#0a1c18e9;--line:#c8ffe01c;--text:#f2fff9;
+  --muted:#a9c9ba;--green:#86efb0;--gold:#ffd276;--cyan:#75eadf;--blue:#8db8ff
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body{
+  background:
+  radial-gradient(circle at 14% 18%,#2c765035,transparent 27%),
+  radial-gradient(circle at 82% 12%,#b9893d22,transparent 25%),
+  linear-gradient(145deg,#07120f,#0a1e18 54%,#06100d)
+}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.stage,.panel{
+  border:1px solid var(--line);border-radius:24px;
+  background:linear-gradient(160deg,#10291fef,#06130fee);
+  box-shadow:0 24px 80px #0007,inset 0 1px 0 #fff0d
+}
+.stage{position:relative;min-width:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;z-index:3;left:22px;top:18px;pointer-events:none;text-shadow:0 3px 20px #0008}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+.back-btn{pointer-events:auto;display:inline-flex;align-items:center;margin-bottom:12px;padding:6px 12px;background:#ffffff14;border:1px solid #ffffff24;border-radius:8px;color:#d7f7e8;font-size:11px;text-decoration:none;font-weight:600;backdrop-filter:blur(4px);transition:.2s}.back-btn:hover{background:#ffffff24;transform:translateY(-1px)}
+h1{font-size:clamp(24px,4vw,47px);line-height:.95;letter-spacing:-.045em;margin:7px 0}
+.sub{max-width:560px;font-size:13px;line-height:1.45;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.badge,.hint{border:1px solid #ffffff18;background:#06161199;backdrop-filter:blur(8px)}
+.badge{padding:6px 9px;border-radius:999px;font-size:10px}
+.hint{position:absolute;left:20px;bottom:18px;z-index:3;padding:9px 12px;border-radius:999px;font-size:11px;color:#d7f7e8}
+.legend{position:absolute;right:16px;bottom:16px;z-index:3;display:grid;gap:5px;padding:9px 11px;border-radius:13px;background:#061611aa;border:1px solid #fff1a}
+.legend div{font-size:10px;color:#cbe9da;display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 13px currentColor}
+.panel{padding:18px;overflow:auto}
+.sec{padding:14px 0;border-bottom:1px solid #ffffff12}.sec:first-child{padding-top:0}.sec:last-child{border-bottom:0}
+h2{font-size:13px;margin:0 0 12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{
+  border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;background:#ffffff0d;
+  color:var(--text);font:inherit;font-weight:750;cursor:pointer;transition:.18s
+}
+button:hover{transform:translateY(-1px);background:#ffffff16}
+.primary{background:linear-gradient(135deg,#91f5b6,#4bc986);color:#062015;border-color:transparent}
+.wide{grid-column:1/-1}
+.control{margin:12px 0}
+.control label{display:flex;justify-content:space-between;font-size:12px;color:#cae5d7;margin-bottom:7px}
+.value{font-weight:800;color:var(--green)}
+input[type=range]{width:100%;accent-color:#7ce6a2}
+.toggle{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cae5d7;padding:9px 10px;margin:7px 0;border-radius:11px;background:#ffffff08}
+.switch{position:relative;width:40px;height:23px}.switch input{opacity:0}
+.slider{position:absolute;inset:0;border-radius:99px;background:#263a32}
+.slider:before{content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+.slider{background:#55c987}.switch input:checked+.slider:before{transform:translateX(17px)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px;border:1px solid #ffffff0d;border-radius:12px;background:#ffffff08}
+.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
+.note{font-size:11px;line-height:1.5;color:var(--muted)}.note strong{color:#effff6}
+.pills{margin-top:8px}.pill{display:inline-block;margin:3px 3px 0 0;padding:5px 8px;border-radius:999px;border:1px solid #9af7bd22;background:#9af7bd10;font-size:10px;color:#dff8ea}
+@media(max-width:900px){
+  body{overflow:auto}#app{height:auto;min-height:100%;grid-template-columns:1fr;padding:10px}
+  .stage{display:flex;flex-direction:column;height:82vh;min-height:600px}canvas{flex:1;min-height:400px}
+  .brand{position:relative;left:0;top:0;padding:18px 18px 22px;background:#0a1c18e9;border-bottom:1px solid var(--line);order:-1;pointer-events:auto}
+  .panel{overflow:visible}
+}
+@media(max-width:560px){
+  .stage,.panel{border-radius:18px}.stage{height:88vh;min-height:550px}
+  .brand{padding:15px 15px 18px}.sub{max-width:none}
+  .hint{left:13px;bottom:13px;max-width:74%;white-space:normal;border-radius:12px}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="stage">
+<canvas id="scene" aria-label="Visualização procedural de PGPB solubilizadora de fósforo"></canvas>
+<div class="brand">
+  <a href="index.html" class="back-btn">← Voltar para a biblioteca</a>
+  <div class="eyebrow">Beans for a Living Soil · Microbe Lab</div>
+  <h1>PGPB solubilizadora</h1>
+  <div class="sub">Células compostas, pili articulados, agregação em biofilme e secreção localizada ao redor de minerais contendo fósforo.</div>
+  <div class="badges">
+    <span class="badge">pili articulados</span>
+    <span class="badge">biofilme</span>
+    <span class="badge">secreção localizada</span>
+    <span class="badge">liberação de fósforo</span>
+  </div>
+</div>
+<div class="hint">Clique ou toque no solo para criar um novo depósito mineral.</div>
+<div class="legend">
+  <div><span class="dot" style="color:#ffd276;background:#ffd276"></span>Fósforo liberado</div>
+  <div><span class="dot" style="color:#75eadf;background:#75eadf"></span>Biofilme e secreções</div>
+  <div><span class="dot" style="color:#8db8ff;background:#8db8ff"></span>Células colonizadoras</div>
+</div>
+</main>
+
+<aside class="panel">
+<div class="sec">
+  <h2>Controle</h2>
+  <div class="buttons">
+    <button id="toggle" class="primary">Pausar</button>
+    <button id="reset">Nova comunidade</button>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comportamento procedural</h2>
+  <div class="control">
+    <label>Número de células <span id="countV" class="value">30</span></label>
+    <input id="count" type="range" min="8" max="65" value="30" step="1">
+  </div>
+  <div class="control">
+    <label>Mobilidade por pili <span id="motilityV" class="value">72%</span></label>
+    <input id="motility" type="range" min="0" max="100" value="72" step="1">
+  </div>
+  <div class="control">
+    <label>Formação de biofilme <span id="biofilmV" class="value">66%</span></label>
+    <input id="biofilm" type="range" min="0" max="100" value="66" step="1">
+  </div>
+  <div class="control">
+    <label>Secreção solubilizadora <span id="secretionV" class="value">74%</span></label>
+    <input id="secretion" type="range" min="0" max="100" value="74" step="1">
+  </div>
+  <div class="control">
+    <label>Atração pelo mineral <span id="chemV" class="value">78%</span></label>
+    <input id="chem" type="range" min="0" max="100" value="78" step="1">
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Camadas</h2>
+  <div class="toggle">Pili articulados
+    <label class="switch"><input id="pili" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Matriz do biofilme
+    <label class="switch"><input id="matrix" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Partículas do solo
+    <label class="switch"><input id="soil" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Fluxo de fósforo
+    <label class="switch"><input id="flow" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comunidade em tempo real</h2>
+  <div class="stats">
+    <div class="stat"><b id="free">0</b><span>células livres</span></div>
+    <div class="stat"><b id="attached">0</b><span>células aderidas</span></div>
+    <div class="stat"><b id="colonized">0/0</b><span>depósitos colonizados</span></div>
+    <div class="stat"><b id="released">0</b><span>partículas liberadas</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Leitura biológica</h2>
+  <div class="note">
+    <strong>O que está sendo representado:</strong> uma comunidade funcional aproxima-se do mineral, adere, forma matriz extracelular e concentra secreções na interface célula–mineral, favorecendo a liberação de fósforo.
+    <div class="pills">
+      <span class="pill">twitching estilizado</span>
+      <span class="pill">adesão</span>
+      <span class="pill">biofilme</span>
+      <span class="pill">solubilização localizada</span>
+    </div>
+    <p>É uma representação funcional e não corresponde a uma espécie ou cinética quantitativa específica.</p>
+  </div>
+</div>
+</aside>
+</div>
+
+<script>
+(()=>{"use strict";
+
+const canvas=document.querySelector("#scene");
+const ctx=canvas.getContext("2d",{alpha:false});
+const $=q=>document.querySelector(q);
+const TAU=Math.PI*2;
+
+let W=0,H=0,DPR=1,last=0,time=0,paused=false;
+let cells=[],minerals=[],dust=[],released=[],matrixBlobs=[];
+let P={count:30,motility:.72,biofilm:.66,secretion:.74,chem:.78};
+
+const rand=(a=0,b=1)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const lerpAng=(a,b,t)=>a+norm(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=r.width;H=r.height;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  resetWorld();
+}
+
+function seedDust(){
+  dust=[];
+  for(let i=0;i<Math.floor(W*H/3400);i++){
+    dust.push({x:rand(0,W),y:rand(0,H),r:rand(.8,5),a:rand(.04,.17),phase:rand(0,TAU),speed:rand(.12,.65)});
+  }
+}
+
+function addMineral(x,y){
+  const verts=[];
+  const n=Math.floor(rand(8,13));
+  for(let i=0;i<n;i++){
+    const a=i/n*TAU;
+    const rr=rand(.72,1.12);
+    verts.push({a,r:rr});
+  }
+  minerals.push({
+    id:Math.random(),x,y,r:rand(30,50),verts,phase:rand(0,TAU),
+    colonization:0,dissolution:0,colonized:false
+  });
+  if(minerals.length>12)minerals.shift();
+}
+
+function seedMinerals(){
+  minerals=[];
+  addMineral(W*.70,H*.34);
+  addMineral(W*.79,H*.70);
+  addMineral(W*.52,H*.61);
+}
+
+function makePili(cell){
+  cell.pili=[];
+  const n=Math.floor(rand(4,8));
+  for(let i=0;i<n;i++){
+    cell.pili.push({
+      angle:i/n*TAU+rand(-.35,.35),
+      length:rand(16,34),
+      phase:rand(0,TAU),
+      target:null,
+      segments:Array.from({length:Math.floor(rand(5,9))},()=>({x:0,y:0}))
+    });
+  }
+}
+
+function spawnCell(){
+  const c={
+    x:rand(W*.12,W*.42),y:rand(H*.14,H*.88),
+    angle:rand(0,TAU),vx:rand(-1,1),vy:rand(-1,1),
+    size:rand(.78,1.22),phase:rand(0,TAU),bodyPhase:rand(0,TAU),
+    state:"free",targetId:null,attachAngle:rand(0,TAU),attachR:0,
+    secretion:0,trail:[],tumble:rand(.4,1.6)
+  };
+  const m=Math.hypot(c.vx,c.vy)||1;c.vx/=m;c.vy/=m;
+  makePili(c);
+  cells.push(c);
+}
+
+function syncPopulation(){
+  while(cells.length<P.count)spawnCell();
+  while(cells.length>P.count)cells.pop();
+}
+
+function resetWorld(){
+  time=0;cells=[];released=[];matrixBlobs=[];
+  seedDust();seedMinerals();syncPopulation();updateStats();
+}
+
+function mineralById(id){return minerals.find(m=>m.id===id)||null}
+
+function nearestMineral(c){
+  let best=null,bd=Infinity;
+  for(const m of minerals){
+    const d=dist(c,m)*(1+m.colonization*.35);
+    if(d<bd){bd=d;best=m}
+  }
+  return best;
+}
+
+function attachToMineral(c,m){
+  c.state="attached";
+  c.targetId=m.id;
+  c.attachAngle=Math.atan2(c.y-m.y,c.x-m.x);
+  c.attachR=m.r*rand(.75,1.02);
+  c.angle=c.attachAngle+Math.PI/2;
+  m.colonized=true;
+}
+
+function updatePili(c,dt){
+  const mineral=c.targetId?mineralById(c.targetId):nearestMineral(c);
+  for(let k=0;k<c.pili.length;k++){
+    const p=c.pili[k];
+    const baseA=c.angle+p.angle;
+    let tipX=c.x+Math.cos(baseA)*p.length;
+    let tipY=c.y+Math.sin(baseA)*p.length;
+
+    if(c.state==="free"&&mineral&&k%2===0){
+      const a=Math.atan2(mineral.y-c.y,mineral.x-c.x);
+      const pull=clamp(1-dist(c,mineral)/260,0,1);
+      tipX=lerp(tipX, mineral.x+Math.cos(a+Math.PI)*mineral.r*.8, pull*.55);
+      tipY=lerp(tipY, mineral.y+Math.sin(a+Math.PI)*mineral.r*.8, pull*.55);
+    }
+
+    let prev={x:c.x,y:c.y};
+    for(let i=0;i<p.segments.length;i++){
+      const u=(i+1)/p.segments.length;
+      const wave=Math.sin(time*5.1-p.phase-i*.85)*P.motility*(1.5+u*2.8);
+      const tx=lerp(c.x,tipX,u)+Math.cos(baseA+Math.PI/2)*wave;
+      const ty=lerp(c.y,tipY,u)+Math.sin(baseA+Math.PI/2)*wave;
+      const s=p.segments[i];
+      if(s.x===0&&s.y===0){s.x=tx;s.y=ty}
+      s.x=lerp(s.x,tx,.26+u*.16);
+      s.y=lerp(s.y,ty,.26+u*.16);
+      prev=s;
+    }
+  }
+}
+
+function updateCell(c,dt){
+  c.tumble-=dt;
+  if(c.state==="attached"){
+    const m=mineralById(c.targetId);
+    if(!m){c.state="free";c.targetId=null;return}
+
+    c.attachAngle+=Math.sin(time*.7+c.phase)*.0015;
+    c.x=m.x+Math.cos(c.attachAngle)*c.attachR;
+    c.y=m.y+Math.sin(c.attachAngle)*c.attachR;
+    c.angle=c.attachAngle+Math.PI/2+Math.sin(time*1.8+c.phase)*.08;
+    c.secretion=clamp(c.secretion+dt*.42*P.secretion,0,1);
+    m.colonization=clamp(m.colonization+dt*.015*P.biofilm,0,1);
+
+    if(P.biofilm>.15&&Math.random()<P.biofilm*.015*dt*60){
+      matrixBlobs.push({
+        x:c.x+rand(-10,10),y:c.y+rand(-10,10),
+        r:rand(5,13),life:1,phase:rand(0,TAU),mineralId:m.id
+      });
+      if(matrixBlobs.length>180)matrixBlobs.shift();
+    }
+
+    if(m.colonization>.22){
+      m.dissolution=clamp(m.dissolution+dt*.012*P.secretion*(.45+m.colonization),0,1);
+      if(Math.random()<P.secretion*.010*dt*60){
+        const a=rand(0,TAU);
+        released.push({
+          x:m.x+Math.cos(a)*m.r*.65,y:m.y+Math.sin(a)*m.r*.65,
+          vx:Math.cos(a)*rand(.15,.5),vy:Math.sin(a)*rand(.15,.5)-rand(.05,.2),
+          life:1,phase:rand(0,TAU)
+        });
+        if(released.length>220)released.shift();
+      }
+    }
+
+    updatePili(c,dt);
+    return;
+  }
+
+  const m=nearestMineral(c);
+  if(m){
+    const d=dist(c,m);
+    const targetA=Math.atan2(m.y-c.y,m.x-c.x);
+    const pull=P.chem*clamp(1-d/520,0,1);
+    c.angle=lerpAng(c.angle,targetA,.022*pull*dt*60);
+
+    if(d<m.r+17&&Math.random()<(.012+.018*P.biofilm)*dt*60){
+      attachToMineral(c,m);
+      return;
+    }
+  }
+
+  if(c.tumble<=0){
+    c.tumble=rand(.35,1.3);
+    c.angle+=rand(-1.3,1.3)*(1-P.chem*.45);
+  }
+
+  const twitch=Math.sin(time*3.1+c.phase)*.055*P.motility;
+  c.angle+=twitch;
+  const speed=.38+P.motility*1.15;
+
+  c.vx=lerp(c.vx,Math.cos(c.angle),.11);
+  c.vy=lerp(c.vy,Math.sin(c.angle),.11);
+  c.x+=c.vx*speed*dt*60;
+  c.y+=c.vy*speed*dt*60;
+
+  const margin=28;
+  if(c.x<margin){c.x=margin;c.angle=Math.PI-c.angle}
+  if(c.x>W-margin){c.x=W-margin;c.angle=Math.PI-c.angle}
+  if(c.y<margin){c.y=margin;c.angle=-c.angle}
+  if(c.y>H-margin){c.y=H-margin;c.angle=-c.angle}
+
+  c.trail.push({x:c.x,y:c.y,life:1});
+  if(c.trail.length>36)c.trail.shift();
+
+  updatePili(c,dt);
+}
+
+function update(dt){
+  syncPopulation();
+  cells.forEach(c=>updateCell(c,dt));
+  cells.forEach(c=>c.trail.forEach(p=>p.life-=dt*1.6));
+
+  matrixBlobs.forEach(b=>b.life=Math.max(.12,b.life-dt*.015));
+  released.forEach(p=>{
+    p.x+=p.vx*dt*60;
+    p.y+=p.vy*dt*60;
+    p.vx*=.995;p.vy*=.995;
+    p.life-=dt*.07;
+  });
+  released=released.filter(p=>p.life>0);
+
+  updateStats();
+}
+
+function drawBackground(){
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#0e281f");g.addColorStop(.55,"#071a14");g.addColorStop(1,"#06110e");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const rg=ctx.createRadialGradient(W*.62,H*.50,0,W*.62,H*.50,Math.max(W,H)*.62);
+  rg.addColorStop(0,"rgba(83,168,122,.14)");
+  rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+
+  if($("#soil").checked){
+    for(const p of dust){
+      const yy=p.y+Math.sin(time*p.speed+p.phase)*2;
+      ctx.beginPath();ctx.arc(p.x,yy,p.r,0,TAU);
+      ctx.fillStyle=`rgba(198,217,188,${p.a})`;ctx.fill();
+    }
+  }
+
+  ctx.save();ctx.globalAlpha=.12;
+  for(let i=0;i<20;i++){
+    const px=(i*151.6)%W,py=(i*87.8)%H;
+    ctx.beginPath();ctx.ellipse(px,py,22+(i%5)*11,8+(i%4)*6,(i*.62)%TAU,0,TAU);
+    ctx.fillStyle="#020806";ctx.fill();
+  }
+  ctx.restore();
+}
+
+function mineralPath(m,scale=1){
+  ctx.beginPath();
+  m.verts.forEach((v,i)=>{
+    const rr=m.r*v.r*scale;
+    const px=m.x+Math.cos(v.a)*rr;
+    const py=m.y+Math.sin(v.a)*rr;
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+  });
+  ctx.closePath();
+}
+
+function drawMinerals(){
+  for(const m of minerals){
+    const pulse=1+Math.sin(time*1.7+m.phase)*.025;
+    const shrink=1-m.dissolution*.25;
+    const rr=m.r*shrink;
+
+    if(m.colonization>0){
+      const halo=ctx.createRadialGradient(m.x,m.y,0,m.x,m.y,m.r*(1.6+m.colonization*.35));
+      halo.addColorStop(0,`rgba(117,234,223,${.08+.16*m.colonization})`);
+      halo.addColorStop(.6,`rgba(117,234,223,${.05*m.colonization})`);
+      halo.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=halo;ctx.beginPath();ctx.arc(m.x,m.y,m.r*(1.6+m.colonization*.35),0,TAU);ctx.fill();
+    }
+
+    const g=ctx.createLinearGradient(m.x-m.r,m.y-m.r,m.x+m.r,m.y+m.r);
+    g.addColorStop(0,"#52677d");
+    g.addColorStop(.45,m.dissolution>.4?"#8a7f67":"#7d8da2");
+    g.addColorStop(1,"#394758");
+    ctx.fillStyle=g;
+    mineralPath(m,pulse*shrink);ctx.fill();
+
+    ctx.strokeStyle="rgba(210,230,248,.36)";ctx.lineWidth=1.1;
+    mineralPath(m,pulse*shrink);ctx.stroke();
+
+    // cracks from dissolution
+    const cracks=3+Math.floor(m.dissolution*9);
+    ctx.save();ctx.translate(m.x,m.y);
+    for(let i=0;i<cracks;i++){
+      const a=i/cracks*TAU+m.phase;
+      const len=rr*(.2+.45*m.dissolution);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*rr*.12,Math.sin(a)*rr*.12);
+      ctx.lineTo(Math.cos(a)*len,Math.sin(a)*len);
+      ctx.strokeStyle=`rgba(255,210,118,${.18+.45*m.dissolution})`;
+      ctx.lineWidth=.9+m.dissolution*.8;ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawMatrix(){
+  if(!$("#matrix").checked)return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const b of matrixBlobs){
+    const pulse=1+Math.sin(time*1.4+b.phase)*.08;
+    const g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r*pulse);
+    g.addColorStop(0,`rgba(117,234,223,${.12*b.life})`);
+    g.addColorStop(.55,`rgba(117,234,223,${.08*b.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,b.r*pulse,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawPili(c){
+  if(!$("#pili").checked)return;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const p of c.pili){
+    if(!p.segments.length)continue;
+    ctx.beginPath();ctx.moveTo(c.x,c.y);
+    p.segments.forEach(s=>ctx.lineTo(s.x,s.y));
+    ctx.strokeStyle=c.state==="attached"?"rgba(117,234,223,.68)":"rgba(184,215,255,.58)";
+    ctx.lineWidth=.9*c.size;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
+}
+
+function drawCell(c){
+  drawPili(c);
+
+  if(c.trail.length>2&&c.state==="free"){
+    ctx.beginPath();
+    c.trail.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle="rgba(141,184,255,.08)";ctx.lineWidth=1;ctx.stroke();
+  }
+
+  ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.angle);
+  const pulse=1+Math.sin(time*3+c.bodyPhase)*.035;
+  ctx.scale(c.size*pulse,c.size/pulse);
+
+  ctx.shadowBlur=14;
+  ctx.shadowColor=c.state==="attached"?"rgba(117,234,223,.36)":"rgba(141,184,255,.28)";
+
+  const g=ctx.createLinearGradient(-15,-7,15,7);
+  if(c.state==="attached"){
+    g.addColorStop(0,"#287e83");g.addColorStop(.52,"#75eadf");g.addColorStop(1,"#1c5b60");
+  }else{
+    g.addColorStop(0,"#4b6fa8");g.addColorStop(.52,"#8db8ff");g.addColorStop(1,"#355480");
+  }
+  ctx.fillStyle=g;
+  roundRect(ctx,-15,-6.5,30,13,7);ctx.fill();
+
+  ctx.shadowBlur=0;
+
+  // articulated body sections
+  for(let i=-9;i<=9;i+=4.5){
+    ctx.beginPath();ctx.moveTo(i,-5.6);ctx.lineTo(i,5.6);
+    ctx.strokeStyle="rgba(255,255,255,.14)";ctx.lineWidth=.75;ctx.stroke();
+  }
+
+  // internal vesicles
+  for(let i=0;i<4;i++){
+    const px=-8+i*5.2;
+    const py=Math.sin(time*1.6+c.phase+i)*2;
+    ctx.beginPath();ctx.arc(px,py,1.1+(i%2)*.25,0,TAU);
+    ctx.fillStyle="rgba(242,255,250,.42)";ctx.fill();
+  }
+
+  // secretion pores
+  if(c.state==="attached"){
+    for(let i=0;i<3;i++){
+      ctx.beginPath();ctx.arc(10-i*3,-4.8,1,0,TAU);
+      ctx.fillStyle="rgba(255,210,118,.78)";ctx.fill();
+    }
+  }
+
+  ctx.restore();
+
+  if(c.state==="attached"&&c.secretion>0){
+    const g2=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,20+18*c.secretion);
+    g2.addColorStop(0,`rgba(255,210,118,${.12*c.secretion})`);
+    g2.addColorStop(.45,`rgba(117,234,223,${.10*c.secretion})`);
+    g2.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g2;ctx.beginPath();ctx.arc(c.x,c.y,20+18*c.secretion,0,TAU);ctx.fill();
+  }
+}
+
+function drawReleased(){
+  if(!$("#flow").checked)return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const p of released){
+    const pulse=1+Math.sin(time*4+p.phase)*.18;
+    const r=3.2*pulse;
+    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3.5);
+    g.addColorStop(0,`rgba(255,224,151,${.95*p.life})`);
+    g.addColorStop(.34,`rgba(255,210,118,${.45*p.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,r*3.5,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function draw(){
+  drawBackground();
+  drawMinerals();
+  drawMatrix();
+
+  const ordered=[...cells].sort((a,b)=>a.y-b.y);
+  ordered.forEach(drawCell);
+
+  drawReleased();
+
+  const v=ctx.createRadialGradient(W*.54,H*.5,Math.min(W,H)*.2,W*.54,H*.5,Math.max(W,H)*.72);
+  v.addColorStop(.56,"rgba(0,0,0,0)");
+  v.addColorStop(1,"rgba(0,0,0,.48)");
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function updateStats(){
+  const attached=cells.filter(c=>c.state==="attached").length;
+  const colonized=minerals.filter(m=>m.colonized).length;
+  $("#free").textContent=cells.length-attached;
+  $("#attached").textContent=attached;
+  $("#colonized").textContent=colonized+"/"+minerals.length;
+  $("#released").textContent=released.length;
+}
+
+function frame(ts){
+  if(!last)last=ts;
+  const dt=Math.min(.033,(ts-last)/1000);last=ts;
+  if(!paused){time+=dt;update(dt)}
+  draw();requestAnimationFrame(frame);
+}
+
+function bind(id,out,key,scale,fmt){
+  const e=$(id);
+  const sync=()=>{P[key]=+e.value*scale;$(out).textContent=fmt(e.value);if(key==="count")syncPopulation()};
+  e.addEventListener("input",sync);sync();
+}
+bind("#count","#countV","count",1,v=>v);
+bind("#motility","#motilityV","motility",.01,v=>v+"%");
+bind("#biofilm","#biofilmV","biofilm",.01,v=>v+"%");
+bind("#secretion","#secretionV","secretion",.01,v=>v+"%");
+bind("#chem","#chemV","chem",.01,v=>v+"%");
+
+$("#toggle").onclick=()=>{
+  paused=!paused;
+  $("#toggle").textContent=paused?"Continuar":"Pausar";
+  $("#toggle").classList.toggle("primary",!paused);
+};
+$("#reset").onclick=resetWorld;
+
+canvas.addEventListener("pointerdown",e=>{
+  const r=canvas.getBoundingClientRect();
+  addMineral(e.clientX-r.left,e.clientY-r.top);
+});
+
+addEventListener("resize",resize,{passive:true});
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

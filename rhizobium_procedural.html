@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Rhizobium procedural — Beans for a Living Soil</title>
+<style>
+:root{
+  --bg:#07120f;--panel:#0a1c17e8;--line:#c5ffe01d;--text:#f2fff8;
+  --muted:#a9c9ba;--green:#8ff2b6;--gold:#ffd27b;--cyan:#79e8dc;--violet:#d5afff
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body{
+  background:
+  radial-gradient(circle at 14% 18%,#2f735036,transparent 28%),
+  radial-gradient(circle at 80% 12%,#d99b4b24,transparent 24%),
+  linear-gradient(145deg,#07120f,#0a1e18 55%,#06100d)
+}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.stage,.panel{
+  border:1px solid var(--line);border-radius:24px;
+  background:linear-gradient(160deg,#10291fef,#06130fee);
+  box-shadow:0 24px 80px #0007,inset 0 1px 0 #fff0d
+}
+.stage{position:relative;min-width:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;z-index:3;left:22px;top:18px;pointer-events:none;text-shadow:0 3px 20px #0008}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+.back-btn{pointer-events:auto;display:inline-flex;align-items:center;margin-bottom:12px;padding:6px 12px;background:#ffffff14;border:1px solid #ffffff24;border-radius:8px;color:#d7f7e8;font-size:11px;text-decoration:none;font-weight:600;backdrop-filter:blur(4px);transition:.2s}.back-btn:hover{background:#ffffff24;transform:translateY(-1px)}
+h1{font-size:clamp(25px,4vw,49px);line-height:.95;letter-spacing:-.045em;margin:7px 0}
+.sub{max-width:540px;font-size:13px;line-height:1.45;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.badge,.hint{border:1px solid #ffffff18;background:#06161199;backdrop-filter:blur(8px)}
+.badge{padding:6px 9px;border-radius:999px;font-size:10px}
+.hint{position:absolute;left:20px;bottom:18px;z-index:3;padding:9px 12px;border-radius:999px;font-size:11px;color:#d7f7e8}
+.legend{position:absolute;right:16px;bottom:16px;z-index:3;display:grid;gap:5px;padding:9px 11px;border-radius:13px;background:#061611aa;border:1px solid #fff1a}
+.legend div{font-size:10px;color:#cbe9da;display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 13px currentColor}
+.panel{padding:18px;overflow:auto}
+.sec{padding:14px 0;border-bottom:1px solid #ffffff12}.sec:first-child{padding-top:0}.sec:last-child{border-bottom:0}
+h2{font-size:13px;margin:0 0 12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{
+  border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;background:#ffffff0d;
+  color:var(--text);font:inherit;font-weight:750;cursor:pointer;transition:.18s
+}
+button:hover{transform:translateY(-1px);background:#ffffff16}
+.primary{background:linear-gradient(135deg,#91f5b6,#4bc986);color:#062015;border-color:transparent}
+.wide{grid-column:1/-1}
+.control{margin:12px 0}
+.control label{display:flex;justify-content:space-between;font-size:12px;color:#cae5d7;margin-bottom:7px}
+.value{font-weight:800;color:var(--green)}
+input[type=range]{width:100%;accent-color:#7ce6a2}
+.toggle{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cae5d7;padding:9px 10px;margin:7px 0;border-radius:11px;background:#ffffff08}
+.switch{position:relative;width:40px;height:23px}.switch input{opacity:0}
+.slider{position:absolute;inset:0;border-radius:99px;background:#263a32}
+.slider:before{content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+.slider{background:#55c987}.switch input:checked+.slider:before{transform:translateX(17px)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px;border:1px solid #ffffff0d;border-radius:12px;background:#ffffff08}
+.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
+.note{font-size:11px;line-height:1.5;color:var(--muted)}.note strong{color:#effff6}
+.pills{margin-top:8px}.pill{display:inline-block;margin:3px 3px 0 0;padding:5px 8px;border-radius:999px;border:1px solid #9af7bd22;background:#9af7bd10;font-size:10px;color:#dff8ea}
+@media(max-width:900px){
+  body{overflow:auto}#app{height:auto;min-height:100%;grid-template-columns:1fr;padding:10px}
+  .stage{display:flex;flex-direction:column;height:82vh;min-height:600px}canvas{flex:1;min-height:400px}
+  .brand{position:relative;left:0;top:0;padding:18px 18px 22px;background:#0a1c17e8;border-bottom:1px solid var(--line);order:-1;pointer-events:auto}
+  .panel{overflow:visible}
+}
+@media(max-width:560px){
+  .stage,.panel{border-radius:18px}.stage{height:88vh;min-height:550px}
+  .brand{padding:15px 15px 18px}.sub{max-width:none}
+  .hint{left:13px;bottom:13px;max-width:72%;white-space:normal;border-radius:12px}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="stage">
+<canvas id="scene" aria-label="Visualização procedural de Rhizobium"></canvas>
+<div class="brand">
+  <a href="index.html" class="back-btn">← Voltar para a biblioteca</a>
+  <div class="eyebrow">Beans for a Living Soil · Microbe Lab</div>
+  <h1>Rhizobium procedural</h1>
+  <div class="sub">Células compostas, flagelos articulados, nado sinuoso, quimiotaxia por exsudatos e adesão progressiva ao pelo radicular.</div>
+  <div class="badges">
+    <span class="badge">corpo segmentado</span>
+    <span class="badge">flagelos flexíveis</span>
+    <span class="badge">quimiotaxia</span>
+    <span class="badge">adesão</span>
+  </div>
+</div>
+<div class="hint">Clique ou toque para criar uma nova fonte de exsudatos.</div>
+<div class="legend">
+  <div><span class="dot" style="color:#ffd27b;background:#ffd27b"></span>Exsudatos radiculares</div>
+  <div><span class="dot" style="color:#79e8dc;background:#79e8dc"></span>Sinal de atração</div>
+  <div><span class="dot" style="color:#d5afff;background:#d5afff"></span>Rhizobium aderido</div>
+</div>
+</main>
+
+<aside class="panel">
+<div class="sec">
+  <h2>Controle</h2>
+  <div class="buttons">
+    <button id="toggle" class="primary">Pausar</button>
+    <button id="reset">Nova população</button>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comportamento procedural</h2>
+  <div class="control">
+    <label>Número de células <span id="countV" class="value">26</span></label>
+    <input id="count" type="range" min="6" max="55" value="26" step="1">
+  </div>
+  <div class="control">
+    <label>Velocidade de nado <span id="speedV" class="value">1.0×</span></label>
+    <input id="speed" type="range" min=".25" max="2.2" value="1" step=".05">
+  </div>
+  <div class="control">
+    <label>Ondulação flagelar <span id="flagV" class="value">72%</span></label>
+    <input id="flag" type="range" min="0" max="100" value="72" step="1">
+  </div>
+  <div class="control">
+    <label>Quimiotaxia <span id="chemV" class="value">76%</span></label>
+    <input id="chem" type="range" min="0" max="100" value="76" step="1">
+  </div>
+  <div class="control">
+    <label>Adesão ao pelo radicular <span id="adhV" class="value">58%</span></label>
+    <input id="adh" type="range" min="0" max="100" value="58" step="1">
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Camadas</h2>
+  <div class="toggle">Trilhas de movimento
+    <label class="switch"><input id="trail" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Gradiente químico
+    <label class="switch"><input id="gradient" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Partículas do solo
+    <label class="switch"><input id="soil" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Sinais Nod estilizados
+    <label class="switch"><input id="nod" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>População em tempo real</h2>
+  <div class="stats">
+    <div class="stat"><b id="freeStat">0</b><span>livres</span></div>
+    <div class="stat"><b id="nearStat">0</b><span>em aproximação</span></div>
+    <div class="stat"><b id="attachedStat">0</b><span>aderidas</span></div>
+    <div class="stat"><b id="sourcesStat">0</b><span>fontes químicas</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Leitura biológica</h2>
+  <div class="note">
+    <strong>O que está sendo representado:</strong> células livres percebem gradientes químicos, mudam sua trajetória e podem aderir à superfície do pelo radicular. O sinal Nod é mostrado apenas como linguagem visual.
+    <div class="pills">
+      <span class="pill">flagelos articulados</span>
+      <span class="pill">run-and-tumble estilizado</span>
+      <span class="pill">quimiotaxia</span>
+      <span class="pill">colonização inicial</span>
+    </div>
+    <p>Não representa quantitativamente a dinâmica populacional nem todo o processo de nodulação.</p>
+  </div>
+</div>
+</aside>
+</div>
+
+<script>
+(()=>{"use strict";
+
+const canvas=document.querySelector("#scene");
+const ctx=canvas.getContext("2d",{alpha:false});
+const $=q=>document.querySelector(q);
+const TAU=Math.PI*2;
+
+let W=0,H=0,DPR=1,last=0,time=0,paused=false;
+let cells=[],sources=[],dust=[],nodSignals=[],rootHair=[];
+let P={count:26,speed:1,flag:.72,chem:.76,adh:.58};
+
+const rand=(a=0,b=1)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const lerpAng=(a,b,t)=>a+norm(b-a)*t;
+const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=r.width;H=r.height;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  resetWorld();
+}
+
+function makeRootHair(){
+  rootHair=[];
+  const sx=W*.18, sy=H*.62;
+  const ex=W*.55, ey=H*.54;
+  const n=46;
+  for(let i=0;i<n;i++){
+    const u=i/(n-1);
+    const bend=Math.sin(u*Math.PI)*H*.055;
+    rootHair.push({
+      x:lerp(sx,ex,u)+Math.sin(u*9)*2,
+      y:lerp(sy,ey,u)-bend,
+      r:lerp(15,3.2,u)
+    });
+  }
+}
+
+function hairPoint(u){
+  u=clamp(u,0,1);
+  const f=u*(rootHair.length-1);
+  const i=Math.floor(f),j=Math.min(rootHair.length-1,i+1),q=f-i;
+  return{x:lerp(rootHair[i].x,rootHair[j].x,q),y:lerp(rootHair[i].y,rootHair[j].y,q),r:lerp(rootHair[i].r,rootHair[j].r,q)};
+}
+
+function seedDust(){
+  dust=[];
+  const n=Math.floor(W*H/3600);
+  for(let i=0;i<n;i++){
+    dust.push({x:rand(0,W),y:rand(0,H),r:rand(.8,4.8),a:rand(.04,.17),phase:rand(0,TAU),speed:rand(.15,.65)});
+  }
+}
+
+function addSource(x,y,rootLinked=false){
+  sources.push({x,y,r:rand(32,55),strength:rand(.8,1.3),life:1,phase:rand(0,TAU),rootLinked});
+  if(sources.length>14)sources.shift();
+}
+
+function seedSources(){
+  sources=[];
+  const tip=hairPoint(.97);
+  addSource(tip.x+18,tip.y, true);
+  addSource(tip.x+80,tip.y+rand(-60,60), false);
+  addSource(W*.68,H*.32,false);
+}
+
+function makeFlagella(cell){
+  cell.flagella=[];
+  const n=Math.floor(rand(2,5));
+  for(let i=0;i<n;i++){
+    const side=(i-(n-1)/2)*.22;
+    const joints=[];
+    const segs=Math.floor(rand(8,13));
+    for(let j=0;j<segs;j++)joints.push({x:0,y:0});
+    cell.flagella.push({side,phase:rand(0,TAU),joints,len:rand(4.4,6.2),wave:rand(.75,1.2)});
+  }
+}
+
+function spawnCell(){
+  const c={
+    x:rand(W*.48,W*.94),y:rand(H*.14,H*.88),
+    vx:rand(-1,1),vy:rand(-1,1),angle:rand(0,TAU),
+    size:rand(.82,1.25),phase:rand(0,TAU),turnTimer:rand(.4,1.8),
+    state:"free",attachedU:null,attachPhase:0,trail:[],
+    bodyPulse:rand(0,TAU),signalCooldown:rand(.5,2.5)
+  };
+  const m=Math.hypot(c.vx,c.vy)||1;c.vx/=m;c.vy/=m;
+  makeFlagella(c);
+  cells.push(c);
+  return c;
+}
+
+function syncPopulation(){
+  while(cells.length<P.count)spawnCell();
+  while(cells.length>P.count)cells.pop();
+}
+
+function resetWorld(){
+  time=0;cells=[];nodSignals=[];
+  makeRootHair();seedDust();seedSources();syncPopulation();updateStats();
+}
+
+function nearestSource(c){
+  let best=null,bd=Infinity;
+  for(const s of sources){
+    if(s.life<=.02)continue;
+    const d=distance(c,s)/(s.strength||1);
+    if(d<bd){bd=d;best=s}
+  }
+  return best;
+}
+
+function nearestHair(c){
+  let best={d:Infinity,u:0,p:null};
+  for(let i=0;i<rootHair.length;i+=2){
+    const p=rootHair[i],d=distance(c,p);
+    if(d<best.d)best={d,u:i/(rootHair.length-1),p}
+  }
+  return best;
+}
+
+function updateFlagella(c,dt){
+  const ca=Math.cos(c.angle),sa=Math.sin(c.angle);
+  const rear={x:c.x-ca*15*c.size,y:c.y-sa*15*c.size};
+  for(const f of c.flagella){
+    const px=-sa,py=ca;
+    let baseX=rear.x+px*f.side*18*c.size;
+    let baseY=rear.y+py*f.side*18*c.size;
+    let prev={x:baseX,y:baseY};
+    for(let j=0;j<f.joints.length;j++){
+      const u=(j+1)/f.joints.length;
+      const wave=Math.sin(time*(5.2+P.speed*1.8)-j*.78+f.phase)*P.flag*f.wave*(4+u*7);
+      const tx=rear.x-ca*(j+1)*f.len*c.size+px*wave;
+      const ty=rear.y-sa*(j+1)*f.len*c.size+py*wave;
+      const joint=f.joints[j];
+      if(joint.x===0&&joint.y===0){joint.x=tx;joint.y=ty}
+      const follow=.22+u*.15;
+      joint.x=lerp(joint.x,tx,follow);
+      joint.y=lerp(joint.y,ty,follow);
+      const dd=Math.hypot(joint.x-prev.x,joint.y-prev.y)||1;
+      if(dd>f.len*c.size*1.35){
+        joint.x=prev.x+(joint.x-prev.x)/dd*f.len*c.size*1.35;
+        joint.y=prev.y+(joint.y-prev.y)/dd*f.len*c.size*1.35;
+      }
+      prev=joint;
+    }
+  }
+}
+
+function attachCell(c,u){
+  c.state="attached";c.attachedU=clamp(u,0,1);c.attachPhase=rand(0,TAU);
+  c.vx=c.vy=0;
+}
+
+function updateCell(c,dt){
+  c.signalCooldown-=dt;
+
+  if(c.state==="attached"){
+    const p=hairPoint(c.attachedU);
+    const wiggle=Math.sin(time*2+c.attachPhase)*2.2;
+    c.x=p.x+Math.cos(c.attachPhase)*p.r*.72+wiggle*.2;
+    c.y=p.y+Math.sin(c.attachPhase)*p.r*.72+wiggle;
+    c.angle=lerpAng(c.angle,Math.PI*.95,.05);
+    if($("#nod").checked&&c.signalCooldown<=0){
+      nodSignals.push({x:c.x,y:c.y,r:2,life:1,phase:rand(0,TAU)});
+      c.signalCooldown=rand(1.3,3.1);
+    }
+    updateFlagella(c,dt);return;
+  }
+
+  c.turnTimer-=dt;
+  if(c.turnTimer<=0){
+    c.turnTimer=rand(.35,1.3);
+    c.angle+=rand(-1.25,1.25)*(1-P.chem*.55);
+  }
+
+  const src=nearestSource(c);
+  if(src){
+    const d=distance(c,src);
+    const targetA=Math.atan2(src.y-c.y,src.x-c.x);
+    const pull=P.chem*clamp(1-d/500,0,1);
+    c.angle=lerpAng(c.angle,targetA,.018*pull*dt*60);
+    c.state=d<170?"near":"free";
+  }else c.state="free";
+
+  const hair=nearestHair(c);
+  if(hair.d<24&&Math.random()<P.adh*.013*dt*60){
+    attachCell(c,hair.u);return;
+  }
+
+  const wobble=Math.sin(time*2.2+c.phase)*.045+Math.sin(time*6.7+c.phase*1.7)*.018;
+  c.angle+=wobble*(.55+P.flag*.85);
+
+  const speed=(.5+P.speed*1.15)*(c.state==="near"?1.08:1);
+  c.vx=lerp(c.vx,Math.cos(c.angle),.08);
+  c.vy=lerp(c.vy,Math.sin(c.angle),.08);
+  c.x+=c.vx*speed*dt*60;
+  c.y+=c.vy*speed*dt*60;
+
+  const margin=35;
+  if(c.x<margin){c.x=margin;c.angle=Math.PI-c.angle}
+  if(c.x>W-margin){c.x=W-margin;c.angle=Math.PI-c.angle}
+  if(c.y<margin){c.y=margin;c.angle=-c.angle}
+  if(c.y>H-margin){c.y=H-margin;c.angle=-c.angle}
+
+  if($("#trail").checked){
+    c.trail.push({x:c.x,y:c.y,life:1});
+    if(c.trail.length>45)c.trail.shift();
+  }else c.trail.length=0;
+
+  updateFlagella(c,dt);
+}
+
+function update(dt){
+  syncPopulation();
+  for(const c of cells)updateCell(c,dt);
+  for(const c of cells)for(const p of c.trail)p.life-=dt*1.7;
+  nodSignals.forEach(s=>{s.r+=dt*18;s.life-=dt*.55});
+  nodSignals=nodSignals.filter(s=>s.life>0);
+  sources.forEach(s=>{if(!s.rootLinked)s.life=Math.max(.25,s.life-dt*.003)});
+  updateStats();
+}
+
+function drawBackground(){
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#0e281f");g.addColorStop(.55,"#071a14");g.addColorStop(1,"#06110e");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const rg=ctx.createRadialGradient(W*.36,H*.57,0,W*.36,H*.57,Math.max(W,H)*.62);
+  rg.addColorStop(0,"rgba(87,181,125,.13)");rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+
+  if($("#soil").checked){
+    for(const p of dust){
+      const yy=p.y+Math.sin(time*p.speed+p.phase)*2.1;
+      ctx.beginPath();ctx.arc(p.x,yy,p.r,0,TAU);
+      ctx.fillStyle=`rgba(198,217,188,${p.a})`;ctx.fill();
+    }
+  }
+
+  ctx.save();ctx.globalAlpha=.11;
+  for(let i=0;i<18;i++){
+    const px=(i*151.4)%W,py=(i*91.8)%H;
+    ctx.beginPath();ctx.ellipse(px,py,25+(i%4)*10,8+(i%3)*7,(i*.7)%TAU,0,TAU);
+    ctx.fillStyle="#020806";ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawSources(){
+  for(const s of sources){
+    if(s.life<=0)continue;
+    const pulse=1+Math.sin(time*2.1+s.phase)*.08;
+    const rr=s.r*pulse;
+    if($("#gradient").checked){
+      const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,rr*2.5);
+      g.addColorStop(0,`rgba(255,210,123,${.22*s.life})`);
+      g.addColorStop(.38,`rgba(121,232,220,${.10*s.life})`);
+      g.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,rr*2.5,0,TAU);ctx.fill();
+    }
+    for(let i=0;i<10;i++){
+      const a=i/10*TAU+s.phase+time*.08;
+      const r=rr*(.25+((i*17)%9)/11);
+      ctx.beginPath();ctx.arc(s.x+Math.cos(a)*r,s.y+Math.sin(a)*r,1.4+(i%3)*.45,0,TAU);
+      ctx.fillStyle=`rgba(255,218,142,${.5*s.life})`;ctx.fill();
+    }
+  }
+}
+
+function drawRootHair(){
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+
+  // root body left
+  const body=ctx.createLinearGradient(0,0,W*.27,0);
+  body.addColorStop(0,"#4c2b22");body.addColorStop(.55,"#a96748");body.addColorStop(1,"#75402e");
+  ctx.fillStyle=body;
+  ctx.beginPath();ctx.ellipse(W*.09,H*.62,W*.16,H*.39,-.08,0,TAU);ctx.fill();
+
+  // translucent cortex
+  ctx.fillStyle="rgba(255,201,147,.13)";
+  ctx.beginPath();ctx.ellipse(W*.095,H*.62,W*.115,H*.33,-.08,0,TAU);ctx.fill();
+
+  // cells
+  ctx.globalAlpha=.28;
+  for(let i=0;i<13;i++){
+    const yy=H*.30+i*H*.05;
+    ctx.beginPath();ctx.ellipse(W*.10+Math.sin(i)*7,yy,20,11,(i%2)*.2,0,TAU);
+    ctx.strokeStyle="#ffd1a4";ctx.lineWidth=1;ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  // hair glow
+  ctx.beginPath();rootHair.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(126,240,194,.12)";ctx.lineWidth=23;ctx.stroke();
+
+  // hair main
+  const hg=ctx.createLinearGradient(rootHair[0].x,rootHair[0].y,rootHair.at(-1).x,rootHair.at(-1).y);
+  hg.addColorStop(0,"#b97752");hg.addColorStop(.55,"#d89a6e");hg.addColorStop(1,"#efbd92");
+  ctx.beginPath();rootHair.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle=hg;ctx.lineWidth=15;ctx.stroke();
+
+  // hair inner
+  ctx.beginPath();rootHair.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.strokeStyle="rgba(255,225,191,.30)";ctx.lineWidth=7;ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawTrails(){
+  if(!$("#trail").checked)return;
+  ctx.save();ctx.lineCap="round";
+  for(const c of cells){
+    if(c.trail.length<2)continue;
+    ctx.beginPath();
+    c.trail.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle=c.state==="near"?"rgba(121,232,220,.16)":"rgba(157,225,190,.08)";
+    ctx.lineWidth=1.2;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFlagella(c){
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const f of c.flagella){
+    if(!f.joints.length)continue;
+    const ca=Math.cos(c.angle),sa=Math.sin(c.angle),px=-sa,py=ca;
+    const bx=c.x-ca*15*c.size+px*f.side*18*c.size;
+    const by=c.y-sa*15*c.size+py*f.side*18*c.size;
+    ctx.beginPath();ctx.moveTo(bx,by);
+    f.joints.forEach(j=>ctx.lineTo(j.x,j.y));
+    ctx.strokeStyle=c.state==="attached"?"rgba(213,175,255,.72)":"rgba(184,244,216,.62)";
+    ctx.lineWidth=1.05*c.size;ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawCell(c){
+  drawFlagella(c);
+  ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.angle);
+  const pulse=1+Math.sin(time*3.2+c.bodyPulse)*.035;
+  ctx.scale(c.size*pulse,c.size/pulse);
+
+  // outer capsule
+  ctx.shadowBlur=16;ctx.shadowColor=c.state==="attached"?"rgba(213,175,255,.35)":"rgba(121,232,220,.25)";
+  const cap=ctx.createLinearGradient(-16,-8,16,8);
+  if(c.state==="attached"){cap.addColorStop(0,"#9673c7");cap.addColorStop(.52,"#d5afff");cap.addColorStop(1,"#745aa6")}
+  else if(c.state==="near"){cap.addColorStop(0,"#278c82");cap.addColorStop(.52,"#79e8dc");cap.addColorStop(1,"#1b6d66")}
+  else{cap.addColorStop(0,"#3b8b60");cap.addColorStop(.52,"#8fe2a9");cap.addColorStop(1,"#296748")}
+  ctx.fillStyle=cap;
+  roundRect(ctx,-16,-7,32,14,8);ctx.fill();
+
+  // articulated body bands
+  ctx.shadowBlur=0;
+  for(let i=-10;i<=10;i+=5){
+    ctx.beginPath();ctx.moveTo(i,-6);ctx.lineTo(i,6);
+    ctx.strokeStyle="rgba(255,255,255,.15)";ctx.lineWidth=.8;ctx.stroke();
+  }
+
+  // membrane highlight
+  ctx.beginPath();ctx.moveTo(-10,-4.2);ctx.quadraticCurveTo(0,-7,10,-3.8);
+  ctx.strokeStyle="rgba(255,255,255,.36)";ctx.lineWidth=1.1;ctx.stroke();
+
+  // internal granules
+  for(let i=0;i<5;i++){
+    const gx=-9+i*4.3+Math.sin(c.phase+i)*.9;
+    const gy=Math.sin(time*1.4+c.phase+i)*2.2;
+    ctx.beginPath();ctx.arc(gx,gy,1.1+(i%2)*.25,0,TAU);
+    ctx.fillStyle="rgba(247,255,250,.45)";ctx.fill();
+  }
+
+  // polar marker
+  ctx.beginPath();ctx.arc(11.3,0,1.8,0,TAU);ctx.fillStyle="rgba(255,245,181,.75)";ctx.fill();
+
+  ctx.restore();
+}
+
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();
+}
+
+function drawNodSignals(){
+  if(!$("#nod").checked)return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const s of nodSignals){
+    const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*1.5);
+    g.addColorStop(0,`rgba(213,175,255,${.55*s.life})`);
+    g.addColorStop(.6,`rgba(121,232,220,${.18*s.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,s.r*1.5,0,TAU);ctx.fill();
+    ctx.strokeStyle=`rgba(213,175,255,${.45*s.life})`;ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,TAU);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function draw(){
+  drawBackground();
+  drawSources();
+  drawRootHair();
+  drawTrails();
+  const ordered=[...cells].sort((a,b)=>a.y-b.y);
+  ordered.forEach(drawCell);
+  drawNodSignals();
+
+  const v=ctx.createRadialGradient(W*.52,H*.5,Math.min(W,H)*.2,W*.52,H*.5,Math.max(W,H)*.72);
+  v.addColorStop(.56,"rgba(0,0,0,0)");v.addColorStop(1,"rgba(0,0,0,.48)");
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function updateStats(){
+  let free=0,near=0,attached=0;
+  for(const c of cells){
+    if(c.state==="attached")attached++;
+    else if(c.state==="near")near++;
+    else free++;
+  }
+  $("#freeStat").textContent=free;
+  $("#nearStat").textContent=near;
+  $("#attachedStat").textContent=attached;
+  $("#sourcesStat").textContent=sources.filter(s=>s.life>.05).length;
+}
+
+function frame(ts){
+  if(!last)last=ts;
+  const dt=Math.min(.033,(ts-last)/1000);last=ts;
+  if(!paused){time+=dt;update(dt)}
+  draw();requestAnimationFrame(frame);
+}
+
+function bind(id,out,key,scale,fmt){
+  const e=$(id);
+  const sync=()=>{P[key]=+e.value*scale;$(out).textContent=fmt(e.value);if(key==="count")syncPopulation()};
+  e.addEventListener("input",sync);sync();
+}
+bind("#count","#countV","count",1,v=>v);
+bind("#speed","#speedV","speed",1,v=>(+v).toFixed(1)+"×");
+bind("#flag","#flagV","flag",.01,v=>v+"%");
+bind("#chem","#chemV","chem",.01,v=>v+"%");
+bind("#adh","#adhV","adh",.01,v=>v+"%");
+
+$("#toggle").onclick=()=>{
+  paused=!paused;$("#toggle").textContent=paused?"Continuar":"Pausar";
+  $("#toggle").classList.toggle("primary",!paused);
+};
+$("#reset").onclick=resetWorld;
+canvas.addEventListener("pointerdown",e=>{
+  const r=canvas.getBoundingClientRect();
+  addSource(e.clientX-r.left,e.clientY-r.top,false);
+});
+
+addEventListener("resize",resize,{passive:true});
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

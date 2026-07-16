@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Trichoderma procedural — Beans for a Living Soil</title>
+<style>
+:root{
+  --bg:#06110d;--panel:#0a1b16e9;--line:#c9ffe01c;--text:#f2fff8;
+  --muted:#abc9ba;--green:#7ff0a5;--lime:#baf66f;--gold:#ffcc74;--violet:#d1a8ff;--red:#ff7f8f
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+body{
+  background:
+    radial-gradient(circle at 14% 18%,#2c7c4d31,transparent 27%),
+    radial-gradient(circle at 84% 13%,#8d3a5023,transparent 24%),
+    linear-gradient(145deg,#06110d,#0a1c16 54%,#050d0a)
+}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.stage,.panel{
+  border:1px solid var(--line);border-radius:24px;
+  background:linear-gradient(160deg,#10281eef,#06120eef);
+  box-shadow:0 24px 80px #0007,inset 0 1px 0 #fff0d
+}
+.stage{position:relative;min-width:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;z-index:3;left:22px;top:18px;pointer-events:none;text-shadow:0 3px 20px #0008}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+.back-btn{pointer-events:auto;display:inline-flex;align-items:center;margin-bottom:12px;padding:6px 12px;background:#ffffff14;border:1px solid #ffffff24;border-radius:8px;color:#d7f7e8;font-size:11px;text-decoration:none;font-weight:600;backdrop-filter:blur(4px);transition:.2s}.back-btn:hover{background:#ffffff24;transform:translateY(-1px)}
+h1{font-size:clamp(24px,4vw,48px);line-height:.95;letter-spacing:-.045em;margin:7px 0}
+.sub{max-width:570px;font-size:13px;line-height:1.45;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.badge,.hint{border:1px solid #ffffff18;background:#06161199;backdrop-filter:blur(8px)}
+.badge{padding:6px 9px;border-radius:999px;font-size:10px}
+.hint{position:absolute;left:20px;bottom:18px;z-index:3;padding:9px 12px;border-radius:999px;font-size:11px;color:#d7f7e8}
+.legend{position:absolute;right:16px;bottom:16px;z-index:3;display:grid;gap:5px;padding:9px 11px;border-radius:13px;background:#061611aa;border:1px solid #fff1a}
+.legend div{font-size:10px;color:#cbe9da;display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 13px currentColor}
+.panel{padding:18px;overflow:auto}
+.sec{padding:14px 0;border-bottom:1px solid #ffffff12}.sec:first-child{padding-top:0}.sec:last-child{border-bottom:0}
+h2{font-size:13px;margin:0 0 12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{
+  border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;background:#ffffff0d;
+  color:var(--text);font:inherit;font-weight:750;cursor:pointer;transition:.18s
+}
+button:hover{transform:translateY(-1px);background:#ffffff16}
+.primary{background:linear-gradient(135deg,#91f5b6,#4bc986);color:#062015;border-color:transparent}
+.wide{grid-column:1/-1}
+.control{margin:12px 0}
+.control label{display:flex;justify-content:space-between;font-size:12px;color:#cae5d7;margin-bottom:7px}
+.value{font-weight:800;color:var(--green)}
+input[type=range]{width:100%;accent-color:#7ce6a2}
+.toggle{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cae5d7;padding:9px 10px;margin:7px 0;border-radius:11px;background:#ffffff08}
+.switch{position:relative;width:40px;height:23px}.switch input{opacity:0}
+.slider{position:absolute;inset:0;border-radius:99px;background:#263a32}
+.slider:before{content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+.slider{background:#55c987}.switch input:checked+.slider:before{transform:translateX(17px)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px;border:1px solid #ffffff0d;border-radius:12px;background:#ffffff08}
+.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
+.note{font-size:11px;line-height:1.5;color:var(--muted)}.note strong{color:#effff6}
+.pills{margin-top:8px}.pill{display:inline-block;margin:3px 3px 0 0;padding:5px 8px;border-radius:999px;border:1px solid #9af7bd22;background:#9af7bd10;font-size:10px;color:#dff8ea}
+@media(max-width:900px){
+  body{overflow:auto}#app{height:auto;min-height:100%;grid-template-columns:1fr;padding:10px}
+  .stage{display:flex;flex-direction:column;height:82vh;min-height:600px}canvas{flex:1;min-height:400px}
+  .brand{position:relative;left:0;top:0;padding:18px 18px 22px;background:#0a1b16e9;border-bottom:1px solid var(--line);order:-1;pointer-events:auto}
+  .panel{overflow:visible}
+}
+@media(max-width:560px){
+  .stage,.panel{border-radius:18px}.stage{height:88vh;min-height:550px}
+  .brand{padding:15px 15px 18px}.sub{max-width:none}
+  .hint{left:13px;bottom:13px;max-width:74%;white-space:normal;border-radius:12px}
+  .legend{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="stage">
+<canvas id="scene" aria-label="Visualização procedural de Trichoderma"></canvas>
+<div class="brand">
+  <a href="index.html" class="back-btn">← Voltar para a biblioteca</a>
+  <div class="eyebrow">Beans for a Living Soil · Microbe Lab</div>
+  <h1>Trichoderma procedural</h1>
+  <div class="sub">Hifas articuladas detectam a colônia-alvo, aproximam-se, enrolam-se ao redor dela e concentram secreções antes da fragmentação.</div>
+  <div class="badges">
+    <span class="badge">reconhecimento</span>
+    <span class="badge">enrolamento</span>
+    <span class="badge">secreção enzimática</span>
+    <span class="badge">micoparasitismo</span>
+  </div>
+</div>
+<div class="hint">Clique ou toque no solo para criar uma nova colônia fúngica-alvo.</div>
+<div class="legend">
+  <div><span class="dot" style="color:#7ff0a5;background:#7ff0a5"></span>Trichoderma</div>
+  <div><span class="dot" style="color:#ff7f8f;background:#ff7f8f"></span>Fungo-alvo</div>
+  <div><span class="dot" style="color:#baf66f;background:#baf66f"></span>Halo enzimático</div>
+</div>
+</main>
+
+<aside class="panel">
+<div class="sec">
+  <h2>Controle</h2>
+  <div class="buttons">
+    <button id="toggle" class="primary">Pausar</button>
+    <button id="reset">Nova interação</button>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Comportamento procedural</h2>
+  <div class="control">
+    <label>Velocidade de crescimento <span id="growthV" class="value">1.0×</span></label>
+    <input id="growth" type="range" min=".25" max="2.2" value="1" step=".05">
+  </div>
+  <div class="control">
+    <label>Detecção do alvo <span id="detectV" class="value">82%</span></label>
+    <input id="detect" type="range" min="0" max="100" value="82" step="1">
+  </div>
+  <div class="control">
+    <label>Enrolamento <span id="coilV" class="value">74%</span></label>
+    <input id="coil" type="range" min="0" max="100" value="74" step="1">
+  </div>
+  <div class="control">
+    <label>Secreção enzimática <span id="enzymeV" class="value">70%</span></label>
+    <input id="enzyme" type="range" min="0" max="100" value="70" step="1">
+  </div>
+  <div class="control">
+    <label>Ramificação <span id="branchV" class="value">62%</span></label>
+    <input id="branch" type="range" min="5" max="95" value="62" step="1">
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Camadas</h2>
+  <div class="toggle">Septos nas hifas
+    <label class="switch"><input id="septa" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Halo enzimático
+    <label class="switch"><input id="halo" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Conídios
+    <label class="switch"><input id="conidia" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+  <div class="toggle">Partículas do solo
+    <label class="switch"><input id="soil" type="checkbox" checked><span class="slider"></span></label>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Interação em tempo real</h2>
+  <div class="stats">
+    <div class="stat"><b id="tips">0</b><span>pontas ativas</span></div>
+    <div class="stat"><b id="detected">0/0</b><span>alvos detectados</span></div>
+    <div class="stat"><b id="coils">0</b><span>enrolamentos</span></div>
+    <div class="stat"><b id="lysed">0</b><span>segmentos fragmentados</span></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Leitura biológica</h2>
+  <div class="note">
+    <strong>O que está sendo representado:</strong> uma visualização funcional do reconhecimento de hifas, crescimento dirigido, enrolamento e degradação localizada da parede do fungo-alvo.
+    <div class="pills">
+      <span class="pill">quimiotropismo</span>
+      <span class="pill">hifas septadas</span>
+      <span class="pill">enrolamento</span>
+      <span class="pill">enzimas líticas</span>
+    </div>
+    <p>Não representa uma espécie ou interação específica, nem a totalidade dos mecanismos de biocontrole.</p>
+  </div>
+</div>
+</aside>
+</div>
+
+<script>
+(()=>{"use strict";
+
+const canvas=document.querySelector("#scene");
+const ctx=canvas.getContext("2d",{alpha:false});
+const $=q=>document.querySelector(q);
+const TAU=Math.PI*2;
+
+let W=0,H=0,DPR=1,last=0,time=0,paused=false;
+let tricho=[],targets=[],dust=[],enzymes=[],conidia=[],fragments=[];
+let nextId=1,nextTargetId=1,coilCount=0,lysedCount=0;
+let P={growth:1,detect:.82,coil:.74,enzyme:.70,branch:.62};
+
+const rand=(a=0,b=1)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const lerpAng=(a,b,t)=>a+norm(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function resize(){
+  const r=canvas.getBoundingClientRect();
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=r.width;H=r.height;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  resetWorld();
+}
+
+function seedDust(){
+  dust=[];
+  for(let i=0;i<Math.floor(W*H/3400);i++){
+    dust.push({x:rand(0,W),y:rand(0,H),r:rand(.8,5),a:rand(.04,.16),phase:rand(0,TAU),speed:rand(.12,.65)});
+  }
+}
+
+function createTargetPath(x,y,r,branches=5){
+  const lines=[];
+  for(let b=0;b<branches;b++){
+    const pts=[];
+    let a=rand(0,TAU),px=x+Math.cos(a)*rand(0,r*.2),py=y+Math.sin(a)*rand(0,r*.2);
+    const n=Math.floor(rand(16,28));
+    for(let i=0;i<n;i++){
+      a+=Math.sin(i*.7+b)*.08+rand(-.09,.09);
+      px+=Math.cos(a)*rand(4.2,6.3);
+      py+=Math.sin(a)*rand(4.2,6.3);
+      pts.push({x:px,y:py,alive:1});
+      if(i>5&&Math.random()<.08){
+        const side=a+(Math.random()<.5?-1:1)*rand(.55,.9);
+        const branchPts=[];
+        let bx=px,by=py;
+        for(let j=0;j<Math.floor(rand(5,10));j++){
+          bx+=Math.cos(side+j*.04)*rand(3.8,5.2);
+          by+=Math.sin(side+j*.04)*rand(3.8,5.2);
+          branchPts.push({x:bx,y:by,alive:1});
+        }
+        lines.push(branchPts);
+      }
+    }
+    lines.push(pts);
+  }
+  return lines;
+}
+
+function addTarget(x,y){
+  const r=rand(45,70);
+  targets.push({
+    id:nextTargetId++,x,y,r,phase:rand(0,TAU),
+    lines:createTargetPath(x,y,r,Math.floor(rand(4,7))),
+    detected:false,contact:0,lysis:0,coils:0
+  });
+  if(targets.length>8)targets.shift();
+}
+
+function spawnTricho(x,y,a,depth=0,parent=null){
+  const h={
+    id:nextId++,points:[{x,y}],angle:a,depth,parent,alive:true,age:0,
+    speed:rand(.65,1.12),phase:rand(0,TAU),bias:rand(-.012,.012),
+    lastBranch:0,budget:Math.max(0,5-depth),w:Math.max(.95,2.8-depth*.3),
+    mode:"search",targetId:null,orbitSide:Math.random()<.5?-1:1,
+    septaOffset:rand(0,15),coilTurns:0
+  };
+  tricho.push(h);
+  return h;
+}
+
+function seedTricho(){
+  tricho=[];conidia=[];enzymes=[];fragments=[];coilCount=0;lysedCount=0;nextId=1;
+  const starts=[
+    {x:W*.10,y:H*.25,a:.05},
+    {x:W*.12,y:H*.52,a:-.05},
+    {x:W*.10,y:H*.79,a:-.15}
+  ];
+  starts.forEach((s,i)=>{
+    spawnTricho(s.x,s.y,s.a,0,null);
+    if(i===1)spawnTricho(s.x+5,s.y+12,s.a+.28,1,null);
+  });
+}
+
+function resetWorld(){
+  time=0;nextTargetId=1;
+  seedDust();
+  targets=[];
+  addTarget(W*.70,H*.34);
+  addTarget(W*.76,H*.70);
+  seedTricho();
+  updateStats();
+}
+
+function targetById(id){return targets.find(t=>t.id===id)||null}
+
+function nearestTarget(p){
+  let best=null,bd=Infinity;
+  for(const t of targets){
+    const penalty=t.lysis>.85?2.5:1;
+    const d=dist(p,t)*penalty;
+    if(d<bd){bd=d;best=t}
+  }
+  return best;
+}
+
+function nearestLiveTargetPoint(t,p){
+  let best=null,bd=Infinity,lineIndex=-1,pointIndex=-1;
+  for(let li=0;li<t.lines.length;li++){
+    const line=t.lines[li];
+    for(let pi=0;pi<line.length;pi+=2){
+      const q=line[pi];
+      if(q.alive<=.02)continue;
+      const d=dist(p,q);
+      if(d<bd){bd=d;best=q;lineIndex=li;pointIndex=pi}
+    }
+  }
+  return{point:best,d:bd,lineIndex,pointIndex};
+}
+
+function enterCoil(h,t,x,y){
+  h.mode="coil";h.targetId=t.id;h.orbitSide=Math.random()<.5?-1:1;h.coilTurns=0;
+  t.detected=true;t.contact=Math.min(1,t.contact+.12);t.coils++;coilCount++;
+  const daughters=3;
+  for(let i=0;i<daughters;i++){
+    const child=spawnTricho(x,y,h.angle+(i-1)*.55,h.depth+1,h.id);
+    child.mode="coil";child.targetId=t.id;child.orbitSide=i%2?-1:1;child.budget=2;
+  }
+}
+
+function updateHypha(h,dt){
+  if(!h.alive)return;
+  h.age+=dt;
+  const p=h.points[h.points.length-1];
+  let target=h.targetId?targetById(h.targetId):nearestTarget(p);
+  if(!target){h.alive=false;return}
+
+  const nearPoint=nearestLiveTargetPoint(target,p);
+  if(!nearPoint.point){h.alive=false;return}
+
+  const direct=Math.atan2(nearPoint.point.y-p.y,nearPoint.point.x-p.x);
+  let desired=direct;
+
+  if(h.mode==="coil"){
+    const tangent=direct+h.orbitSide*Math.PI*.50;
+    const orbit=clamp(1-nearPoint.d/52,0,1);
+    desired=lerpAng(direct,tangent,.78*orbit*P.coil);
+  }
+
+  const detectStrength=P.detect*clamp(1-nearPoint.d/700,0,1);
+  const steer=h.mode==="coil"?.15:.095;
+  h.angle=lerpAng(h.angle,desired,steer*detectStrength*dt*60);
+
+  const waveScale=h.mode==="coil"?.32:1;
+  const wave=(
+    Math.sin(time*2.0+h.phase+h.age*.044)*(.018+.055*P.coil)+
+    Math.sin(time*5.6+h.phase*1.9)*.014
+  )*waveScale;
+  h.angle=norm(h.angle+wave+h.bias);
+
+  const proximity=clamp(1-nearPoint.d/190,0,1);
+  const step=(.48+h.speed*.82)*P.growth*(1+proximity*.18)*dt*60;
+  const nx=p.x+Math.cos(h.angle)*step;
+  const ny=p.y+Math.sin(h.angle)*step;
+
+  if(nx<0||nx>W||ny<0||ny>H){h.alive=false;return}
+  h.points.push({x:nx,y:ny});
+  if(h.points.length>760)h.alive=false;
+
+  const newNear=nearestLiveTargetPoint(target,{x:nx,y:ny});
+  if(newNear.d<28&&h.mode!=="coil")enterCoil(h,target,nx,ny);
+
+  if(h.mode==="coil"){
+    h.coilTurns+=Math.abs(norm(h.angle-direct))*dt;
+    target.contact=Math.min(1,target.contact+.0018*dt*60);
+
+    if(newNear.d<34){
+      if($("#halo").checked&&Math.random()<P.enzyme*.018*dt*60){
+        enzymes.push({x:nx,y:ny,r:2,life:1,phase:rand(0,TAU),targetId:target.id});
+        if(enzymes.length>240)enzymes.shift();
+      }
+
+      if(target.contact>.18){
+        target.lysis=clamp(target.lysis+dt*.0085*P.enzyme*(.5+P.coil),0,1);
+
+        if(Math.random()<P.enzyme*.012*dt*60&&newNear.point&&newNear.point.alive>.02){
+          newNear.point.alive=Math.max(0,newNear.point.alive-.16-.18*P.enzyme);
+          if(newNear.point.alive<=.02){
+            lysedCount++;
+            fragments.push({
+              x:newNear.point.x,y:newNear.point.y,
+              vx:rand(-.5,.5),vy:rand(-.6,.2),life:1,phase:rand(0,TAU)
+            });
+            if(fragments.length>180)fragments.shift();
+          }
+        }
+      }
+    }
+  }
+
+  const branchFactor=h.mode==="coil"?1.8:.45;
+  const minDelay=h.mode==="coil"?30:75;
+  const maxDelay=h.mode==="coil"?65:135;
+  if(h.budget>0&&h.age-h.lastBranch>rand(minDelay,maxDelay)&&
+     Math.random()<P.branch*.016*branchFactor*dt*60){
+    h.lastBranch=h.age;h.budget--;
+    const side=Math.random()<.5?1:-1;
+    const child=spawnTricho(nx,ny,h.angle+side*rand(.45,.9),h.depth+1,h.id);
+    if(h.mode==="coil"){
+      child.mode="coil";child.targetId=target.id;child.orbitSide=side;
+    }
+  }
+
+  if($("#conidia").checked&&h.mode==="coil"&&target.lysis>.45&&
+     Math.random()<.0011*dt*60&&conidia.length<60){
+    conidia.push({x:nx,y:ny,r:rand(4.5,8),stem:rand(7,18),phase:rand(0,TAU),age:0});
+  }
+}
+
+function update(dt){
+  tricho.forEach(h=>updateHypha(h,dt));
+  enzymes.forEach(e=>{e.r+=dt*15;e.life-=dt*.62});
+  enzymes=enzymes.filter(e=>e.life>0);
+
+  conidia.forEach(c=>c.age+=dt);
+  fragments.forEach(f=>{
+    f.x+=f.vx*dt*60;f.y+=f.vy*dt*60;
+    f.vx*=.985;f.vy+=.008*dt*60;f.life-=dt*.22;
+  });
+  fragments=fragments.filter(f=>f.life>0);
+
+  if(tricho.filter(h=>h.alive).length<4&&tricho.length<260){
+    spawnTricho(W*.08,rand(H*.15,H*.85),rand(-.25,.25),0,null);
+  }
+  updateStats();
+}
+
+function drawBackground(){
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#0e281f");g.addColorStop(.55,"#071a14");g.addColorStop(1,"#06110e");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const rg=ctx.createRadialGradient(W*.55,H*.48,0,W*.55,H*.48,Math.max(W,H)*.65);
+  rg.addColorStop(0,"rgba(84,176,120,.13)");rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
+
+  if($("#soil").checked){
+    for(const p of dust){
+      const yy=p.y+Math.sin(time*p.speed+p.phase)*2;
+      ctx.beginPath();ctx.arc(p.x,yy,p.r,0,TAU);
+      ctx.fillStyle=`rgba(198,217,188,${p.a})`;ctx.fill();
+    }
+  }
+
+  ctx.save();ctx.globalAlpha=.11;
+  for(let i=0;i<20;i++){
+    const px=(i*151.4)%W,py=(i*88.1)%H;
+    ctx.beginPath();ctx.ellipse(px,py,22+(i%5)*11,8+(i%4)*6,(i*.63)%TAU,0,TAU);
+    ctx.fillStyle="#020806";ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawTarget(t){
+  const pulse=1+Math.sin(time*1.7+t.phase)*.018;
+  const halo=ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r*1.7);
+  halo.addColorStop(0,`rgba(255,127,143,${.08+.10*(1-t.lysis)})`);
+  halo.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=halo;ctx.beginPath();ctx.arc(t.x,t.y,t.r*1.7,0,TAU);ctx.fill();
+
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(const line of t.lines){
+    if(line.length<2)continue;
+    for(let i=1;i<line.length;i++){
+      const a=line[i-1],b=line[i];
+      if(a.alive<=.02&&b.alive<=.02)continue;
+      const alive=(a.alive+b.alive)*.5;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle=`rgba(255,127,143,${.25+.65*alive})`;
+      ctx.lineWidth=(3.2*alive+1)*pulse;ctx.stroke();
+
+      if($("#septa").checked&&i%4===0&&alive>.1){
+        const ang=Math.atan2(b.y-a.y,b.x-a.x)+Math.PI/2;
+        const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+        ctx.beginPath();
+        ctx.moveTo(mx+Math.cos(ang)*3,my+Math.sin(ang)*3);
+        ctx.lineTo(mx-Math.cos(ang)*3,my-Math.sin(ang)*3);
+        ctx.strokeStyle=`rgba(255,235,239,${.32*alive})`;ctx.lineWidth=.8;ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
+
+  if(t.detected){
+    ctx.save();ctx.setLineDash([3,6]);
+    ctx.strokeStyle=`rgba(186,246,111,${.18+.42*t.contact})`;
+    ctx.lineWidth=1.1;
+    ctx.beginPath();ctx.arc(t.x,t.y,t.r*(1.05+.10*Math.sin(time*2+t.phase)),0,TAU);ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawTricho(){
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+
+  for(const h of tricho){
+    if(h.points.length<2)continue;
+    ctx.beginPath();h.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle=h.mode==="coil"?"rgba(127,240,165,.15)":"rgba(127,240,165,.07)";
+    ctx.lineWidth=h.w*7;ctx.stroke();
+  }
+
+  for(const h of tricho){
+    if(h.points.length<2)continue;
+    const a=h.points[0],b=h.points[h.points.length-1];
+    const g=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    if(h.mode==="coil"){
+      g.addColorStop(0,"#d8ff9a");g.addColorStop(.52,"#7ff0a5");g.addColorStop(1,"#31a66a");
+    }else{
+      g.addColorStop(0,"#b8e9ca");g.addColorStop(.52,"#65cc8b");g.addColorStop(1,"#2d7d54");
+    }
+    ctx.beginPath();h.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.strokeStyle=g;ctx.lineWidth=h.w;ctx.stroke();
+
+    if($("#septa").checked){
+      const spacing=18;
+      for(let d=h.septaOffset;d<h.points.length;d+=spacing){
+        const i=Math.floor(d);
+        if(i<1||i>=h.points.length-1)continue;
+        const p=h.points[i],p0=h.points[i-1],p1=h.points[i+1];
+        const ang=Math.atan2(p1.y-p0.y,p1.x-p0.x)+Math.PI/2;
+        const len=h.w*1.35;
+        ctx.beginPath();
+        ctx.moveTo(p.x+Math.cos(ang)*len,p.y+Math.sin(ang)*len);
+        ctx.lineTo(p.x-Math.cos(ang)*len,p.y-Math.sin(ang)*len);
+        ctx.strokeStyle="rgba(243,255,247,.45)";ctx.lineWidth=.75;ctx.stroke();
+      }
+    }
+
+    if(h.alive){
+      const p=b;
+      const r=2.8+Math.sin(time*5+h.phase)*.8;
+      const gg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*5);
+      gg.addColorStop(0,"rgba(244,255,247,.98)");
+      gg.addColorStop(.28,h.mode==="coil"?"rgba(186,246,111,.78)":"rgba(127,240,165,.62)");
+      gg.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=gg;ctx.beginPath();ctx.arc(p.x,p.y,r*5,0,TAU);ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawEnzymes(){
+  if(!$("#halo").checked)return;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const e of enzymes){
+    const g=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r*1.8);
+    g.addColorStop(0,`rgba(186,246,111,${.28*e.life})`);
+    g.addColorStop(.48,`rgba(127,240,165,${.12*e.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(e.x,e.y,e.r*1.8,0,TAU);ctx.fill();
+    ctx.strokeStyle=`rgba(186,246,111,${.30*e.life})`;ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,TAU);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawConidia(){
+  if(!$("#conidia").checked)return;
+  ctx.save();
+  for(const c of conidia){
+    const mature=clamp(c.age*.25,0,1);
+    const rr=c.r*(.55+.45*mature)*(1+Math.sin(time*1.9+c.phase)*.05);
+
+    ctx.beginPath();ctx.moveTo(c.x,c.y+c.stem);ctx.lineTo(c.x,c.y+rr*.5);
+    ctx.strokeStyle="rgba(102,207,139,.58)";ctx.lineWidth=1;ctx.stroke();
+
+    const g=ctx.createRadialGradient(c.x-rr*.25,c.y-rr*.3,1,c.x,c.y,rr);
+    g.addColorStop(0,"#eaffbd");
+    g.addColorStop(.48,"#a4ec72");
+    g.addColorStop(1,"#3b8d52");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(c.x,c.y,rr,0,TAU);ctx.fill();
+
+    for(let i=0;i<4;i++){
+      const a=i/4*TAU+c.phase;
+      ctx.beginPath();ctx.arc(c.x+Math.cos(a)*rr*.34,c.y+Math.sin(a)*rr*.34,1,0,TAU);
+      ctx.fillStyle="rgba(250,255,227,.48)";ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawFragments(){
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(const f of fragments){
+    const g=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,5);
+    g.addColorStop(0,`rgba(255,182,192,${.8*f.life})`);
+    g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,5,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function draw(){
+  drawBackground();
+  targets.forEach(drawTarget);
+  drawTricho();
+  drawEnzymes();
+  drawConidia();
+  drawFragments();
+
+  const v=ctx.createRadialGradient(W*.53,H*.5,Math.min(W,H)*.2,W*.53,H*.5,Math.max(W,H)*.74);
+  v.addColorStop(.56,"rgba(0,0,0,0)");
+  v.addColorStop(1,"rgba(0,0,0,.50)");
+  ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function updateStats(){
+  const detected=targets.filter(t=>t.detected).length;
+  $("#tips").textContent=tricho.filter(h=>h.alive).length;
+  $("#detected").textContent=detected+"/"+targets.length;
+  $("#coils").textContent=coilCount;
+  $("#lysed").textContent=lysedCount;
+}
+
+function frame(ts){
+  if(!last)last=ts;
+  const dt=Math.min(.033,(ts-last)/1000);last=ts;
+  if(!paused){time+=dt;update(dt)}
+  draw();requestAnimationFrame(frame);
+}
+
+function bind(id,out,key,scale,fmt){
+  const e=$(id);
+  const sync=()=>{P[key]=+e.value*scale;$(out).textContent=fmt(e.value)};
+  e.addEventListener("input",sync);sync();
+}
+bind("#growth","#growthV","growth",1,v=>(+v).toFixed(1)+"×");
+bind("#detect","#detectV","detect",.01,v=>v+"%");
+bind("#coil","#coilV","coil",.01,v=>v+"%");
+bind("#enzyme","#enzymeV","enzyme",.01,v=>v+"%");
+bind("#branch","#branchV","branch",.01,v=>v+"%");
+
+$("#toggle").onclick=()=>{
+  paused=!paused;
+  $("#toggle").textContent=paused?"Continuar":"Pausar";
+  $("#toggle").classList.toggle("primary",!paused);
+};
+$("#reset").onclick=resetWorld;
+
+canvas.addEventListener("pointerdown",e=>{
+  const r=canvas.getBoundingClientRect();
+  addTarget(e.clientX-r.left,e.clientY-r.top);
+});
+
+addEventListener("resize",resize,{passive:true});
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

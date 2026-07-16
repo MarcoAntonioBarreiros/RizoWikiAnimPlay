@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Micorriza procedural — Beans for a Living Soil</title>
+<style>
+:root{--bg:#07120f;--panel:#0b1d17dd;--line:#b7ffd51f;--text:#f1fff8;--muted:#a8c9b9;--green:#8bf0b2}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;overflow:hidden}
+body{background:radial-gradient(circle at 15% 20%,#285c4226,transparent 28%),radial-gradient(circle at 82% 15%,#d9914630,transparent 24%),linear-gradient(145deg,#07120f,#0a1d17 55%,#06100d)}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;padding:16px}
+.stage,.panel{border:1px solid var(--line);border-radius:24px;background:linear-gradient(160deg,#10291fef,#06130fee);box-shadow:0 24px 80px #0007,inset 0 1px 0 #fff0d}
+.stage{position:relative;min-width:0;overflow:hidden}canvas{display:block;width:100%;height:100%;touch-action:none}
+.brand{position:absolute;z-index:3;left:22px;top:18px;pointer-events:none}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green)}
+.back-btn{pointer-events:auto;display:inline-flex;align-items:center;margin-bottom:12px;padding:6px 12px;background:#ffffff14;border:1px solid #ffffff24;border-radius:8px;color:#d7f7e8;font-size:11px;text-decoration:none;font-weight:600;backdrop-filter:blur(4px);transition:.2s}.back-btn:hover{background:#ffffff24;transform:translateY(-1px)}
+h1{font-size:clamp(25px,4vw,49px);line-height:.95;letter-spacing:-.045em;margin:7px 0}.sub{max-width:520px;font-size:13px;line-height:1.45;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.badge,.hint{border:1px solid #ffffff18;background:#06161199;backdrop-filter:blur(8px)}
+.badge{padding:6px 9px;border-radius:999px;font-size:10px}.hint{position:absolute;left:20px;bottom:18px;z-index:3;padding:9px 12px;border-radius:999px;font-size:11px;color:#d7f7e8}
+.legend{position:absolute;right:16px;bottom:16px;z-index:3;display:grid;gap:5px;padding:9px 11px;border-radius:13px;background:#061611aa;border:1px solid #fff1a}
+.legend div{font-size:10px;color:#cbe9da;display:flex;gap:7px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;box-shadow:0 0 13px currentColor}
+.panel{padding:18px;overflow:auto}.sec{padding:14px 0;border-bottom:1px solid #ffffff12}.sec:first-child{padding-top:0}.sec:last-child{border-bottom:0}
+h2{font-size:13px;margin:0 0 12px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;background:#ffffff0d;color:var(--text);font:inherit;font-weight:750;cursor:pointer;transition:.18s}
+button:hover{transform:translateY(-1px);background:#ffffff16}.primary{background:linear-gradient(135deg,#91f5b6,#4bc986);color:#062015;border-color:transparent}.wide{grid-column:1/-1}
+.control{margin:12px 0}.control label{display:flex;justify-content:space-between;font-size:12px;color:#cae5d7;margin-bottom:7px}.value{font-weight:800;color:var(--green)}
+input[type=range]{width:100%;accent-color:#7ce6a2}.toggle{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cae5d7;padding:9px 10px;margin:7px 0;border-radius:11px;background:#ffffff08}
+.switch{position:relative;width:40px;height:23px}.switch input{opacity:0}.slider{position:absolute;inset:0;border-radius:99px;background:#263a32}.slider:before{content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}.switch input:checked+.slider{background:#55c987}.switch input:checked+.slider:before{transform:translateX(17px)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{padding:10px;border:1px solid #ffffff0d;border-radius:12px;background:#ffffff08}.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
+.note{font-size:11px;line-height:1.5;color:var(--muted)}.note strong{color:#effff6}.pills{margin-top:8px}.pill{display:inline-block;margin:3px 3px 0 0;padding:5px 8px;border-radius:999px;border:1px solid #9af7bd22;background:#9af7bd10;font-size:10px;color:#dff8ea}
+@media(max-width:900px){body{overflow:auto}#app{height:auto;min-height:100%;grid-template-columns:1fr;padding:10px}.stage{display:flex;flex-direction:column;height:82vh;min-height:600px}canvas{flex:1;min-height:400px}.brand{position:relative;left:0;top:0;padding:18px 18px 22px;background:#06130fd9;border-bottom:1px solid var(--line);order:-1;pointer-events:auto}.panel{overflow:visible}}
+@media(max-width:560px){.stage,.panel{border-radius:18px}.stage{height:88vh;min-height:550px}.brand{padding:15px 15px 18px}.sub{max-width:none}.hint{left:13px;bottom:13px;max-width:72%;white-space:normal;border-radius:12px}.legend{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+<main class="stage">
+<canvas id="scene"></canvas>
+<div class="brand">
+<a href="index.html" class="back-btn">← Voltar para a biblioteca</a>
+<div class="eyebrow">Beans for a Living Soil · Microbe Lab</div>
+<h1>Micorriza procedural</h1>
+<div class="sub">Rede composta por pontas de crescimento, segmentos articulados, ramificações, esporos, arbúsculos e fluxo interno de nutrientes.</div>
+<div class="badges"><span class="badge">crescimento vivo</span><span class="badge">rede extrarradicular</span><span class="badge">arbúsculos</span><span class="badge">fluxo P ↔ C</span></div>
+</div>
+<div class="hint">Toque ou clique no solo para criar uma zona rica em fósforo.</div>
+<div class="legend"><div><span class="dot" style="color:#ffd176;background:#ffd176"></span>Fósforo rumo à raiz</div><div><span class="dot" style="color:#7ef0c2;background:#7ef0c2"></span>Carbono rumo à rede</div><div><span class="dot" style="color:#d9b7ff;background:#d9b7ff"></span>Hifas e arbúsculos</div></div>
+</main>
+<aside class="panel">
+<div class="sec"><h2>Controle</h2><div class="buttons"><button id="toggle" class="primary">Pausar</button><button id="reset">Nova rede</button></div></div>
+<div class="sec"><h2>Comportamento procedural</h2>
+<div class="control"><label>Velocidade de crescimento <span id="growthV" class="value">1.0×</span></label><input id="growth" type="range" min=".25" max="2.2" value="1" step=".05"></div>
+<div class="control"><label>Ramificação <span id="branchV" class="value">42%</span></label><input id="branch" type="range" min="5" max="90" value="42"></div>
+<div class="control"><label>Movimento orgânico <span id="organicV" class="value">66%</span></label><input id="organic" type="range" min="0" max="100" value="66"></div>
+<div class="control"><label>Atração por nutrientes <span id="tropismV" class="value">74%</span></label><input id="tropism" type="range" min="0" max="100" value="74"></div>
+</div>
+<div class="sec"><h2>Camadas</h2>
+<div class="toggle">Fluxo interno<label class="switch"><input id="flow" type="checkbox" checked><span class="slider"></span></label></div>
+<div class="toggle">Arbúsculos na raiz<label class="switch"><input id="arb" type="checkbox" checked><span class="slider"></span></label></div>
+<div class="toggle">Partículas do solo<label class="switch"><input id="soil" type="checkbox" checked><span class="slider"></span></label></div>
+<div class="toggle">Esporos<label class="switch"><input id="spore" type="checkbox" checked><span class="slider"></span></label></div>
+</div>
+<div class="sec"><h2>Rede em tempo real</h2><div class="stats">
+<div class="stat"><b id="tips">0</b><span>pontas ativas</span></div><div class="stat"><b id="segments">0</b><span>segmentos</span></div>
+<div class="stat"><b id="spores">0</b><span>esporos</span></div><div class="stat"><b id="nodes">0</b><span>zonas nutritivas</span></div>
+</div></div>
+<div class="sec"><h2>Leitura biológica</h2><div class="note"><strong>Representação:</strong> a raiz fornece carbono à simbiose; a rede extrarradicular explora o solo e conduz nutrientes, como fósforo, de volta à planta.<div class="pills"><span class="pill">crescimento apical</span><span class="pill">ramificação estocástica</span><span class="pill">quimiotropismo</span><span class="pill">fluxo bidirecional</span></div><p>Visualização estilizada para design do jogo, não uma simulação quantitativa.</p></div></div>
+</aside>
+</div>
+<script>
+(()=>{"use strict";
+const c=document.querySelector("#scene"),x=c.getContext("2d",{alpha:false}),$=s=>document.querySelector(s),TAU=Math.PI*2;
+let W=0,H=0,D=1,last=0,t=0,paused=false,root=[],soil=[],nutr=[],hypha=[],spores=[],arb=[],id=1;
+let P={growth:1,branch:.42,organic:.66,tropism:.74};
+const R=(a=0,b=1)=>a+Math.random()*(b-a),C=(v,a,b)=>Math.max(a,Math.min(b,v)),L=(a,b,u)=>a+(b-a)*u,N=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),la=(a,b,u)=>a+N(b-a)*u;
+function resize(){let r=c.getBoundingClientRect();D=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0);reset()}
+function rootAt(u){u=C(u,0,1);let f=u*(root.length-1),i=Math.floor(f),j=Math.min(root.length-1,i+1),q=f-i;return{x:L(root[i].x,root[j].x,q),y:L(root[i].y,root[j].y,q),r:L(root[i].r,root[j].r,q)}}
+function addHypha(px,py,a,d=0,parent=null){let h={id:id++,p:[{x:px,y:py}],a,s:R(.55,1.05),d,age:0,phase:R(0,TAU),bias:R(-.015,.015),budget:Math.max(0,4-d),lastB:0,w:Math.max(.75,2.35-d*.28),alive:true,parent};hypha.push(h);return h}
+function addNutrient(px,py){nutr.push({x:px,y:py,r:R(28,48),str:R(.8,1.35),phase:R(0,TAU),life:1});if(nutr.length>18)nutr.shift()}
+function reset(){t=0;id=1;root=[];hypha=[];spores=[];arb=[];soil=[];nutr=[];
+let xb=W*.27;for(let i=0;i<42;i++){let u=i/41;root.push({x:xb+Math.sin(u*5.8+.4)*W*.018+Math.sin(u*13.2)*W*.006,y:L(-30,H+40,u),r:L(28,16,u)})}
+for(let i=0;i<Math.floor(W*H/3600);i++)soil.push({x:R(0,W),y:R(0,H),r:R(1.2,5.5),a:R(.05,.18),ph:R(0,TAU),dr:R(.15,.7)});
+for(let i=0;i<8;i++)addNutrient(R(W*.48,W*.92),R(H*.16,H*.88));
+for(let i=0;i<9;i++){let p=rootAt((i+1)/10);arb.push({x:p.x+R(-5,5),y:p.y,s:R(.65,1.1),ph:R(0,TAU),b:Math.floor(R(5,9))})}
+[.18,.31,.45,.58,.72,.84].forEach((u,i)=>{let p=rootAt(u);addHypha(p.x+p.r*.45,p.y,R(-.5,.5));if(i%2===0)addHypha(p.x+p.r*.35,p.y+R(-12,12),R(-.35,.35),1)});stats()}
+function nearest(p){let b=null,bd=1e9;for(let n of nutr){if(n.life<=0)continue;let d=dist(p,n)/n.str;if(d<bd){bd=d;b=n}}return b}
+function updateHypha(h,dt){if(!h.alive)return;h.age+=dt;let p=h.p[h.p.length-1],target=nearest(p),des=h.a;
+if(target){let a=Math.atan2(target.y-p.y,target.x-p.x),pull=P.tropism*C(1-dist(p,target)/420,0,1);des=N(la(des,a,.018*pull*dt*60))}
+let wave=Math.sin(t*1.7+h.phase+h.age*.035)*(.022+P.organic*.06)+Math.sin(t*4.1+h.phase*2.3)*P.organic*.015;
+h.a=N(la(h.a,des,.06)+wave+h.bias);let step=(.45+h.s*.7)*P.growth*dt*60,nx=p.x+Math.cos(h.a)*step,ny=p.y+Math.sin(h.a)*step;
+if(nx<0||nx>W||ny<0||ny>H){h.alive=false;return}h.p.push({x:nx,y:ny});if(h.p.length>700)h.alive=false;
+if(target&&dist({x:nx,y:ny},target)<target.r)target.life=Math.max(0,target.life-.0015*dt*60);
+if(h.budget>0&&h.age-h.lastB>R(70,130)&&Math.random()<P.branch*.016*dt*60){h.lastB=h.age;h.budget--;addHypha(nx,ny,h.a+(Math.random()<.5?1:-1)*R(.55,1.15),h.d+1,h.id)}
+if($("#spore").checked&&h.age>220&&h.d>0&&Math.random()<.001*dt*60&&spores.length<34)spores.push({x:nx,y:ny,r:R(8,16),ph:R(0,TAU),age:0})}
+function update(dt){hypha.forEach(h=>updateHypha(h,dt));spores.forEach(s=>s.age+=dt);if(hypha.filter(h=>h.alive).length<5&&hypha.length<220){let p=rootAt(R(.15,.88));addHypha(p.x+p.r*.4,p.y,R(-.5,.5))}if(nutr.every(n=>n.life<=.08)&&Math.random()<.006*dt*60)addNutrient(R(W*.5,W*.9),R(H*.2,H*.85));stats()}
+function bg(){let g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,"#0d261d");g.addColorStop(.55,"#071a14");g.addColorStop(1,"#06110e");x.fillStyle=g;x.fillRect(0,0,W,H);
+let gg=x.createRadialGradient(W*.28,H*.48,0,W*.28,H*.48,Math.max(W,H)*.55);gg.addColorStop(0,"#50aa731f");gg.addColorStop(1,"#0000");x.fillStyle=gg;x.fillRect(0,0,W,H);
+if($("#soil").checked)for(let p of soil){x.beginPath();x.arc(p.x,p.y+Math.sin(t*p.dr+p.ph)*2.2,p.r,0,TAU);x.fillStyle=`rgba(198,217,188,${p.a})`;x.fill()}}
+function drawNutr(){for(let n of nutr){if(n.life<=0)continue;let rr=n.r*(1+Math.sin(t*2+n.phase)*.09),g=x.createRadialGradient(n.x,n.y,0,n.x,n.y,rr*1.7);g.addColorStop(0,`rgba(255,201,96,${.24*n.life})`);g.addColorStop(.55,`rgba(255,170,68,${.08*n.life})`);g.addColorStop(1,"#0000");x.fillStyle=g;x.beginPath();x.arc(n.x,n.y,rr*1.7,0,TAU);x.fill();for(let i=0;i<7;i++){let a=i/7*TAU+n.phase,r=rr*(.32+.5*((i*13)%7)/7);x.beginPath();x.arc(n.x+Math.cos(a+t*.08)*r,n.y+Math.sin(a+t*.08)*r,1.5+(i%3)*.4,0,TAU);x.fillStyle=`rgba(255,218,139,${.55*n.life})`;x.fill()}}}
+function drawRoot(){x.save();x.lineCap="round";x.lineJoin="round";x.beginPath();root.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.strokeStyle="#7ef0c21e";x.lineWidth=64;x.stroke();
+let g=x.createLinearGradient(W*.2,0,W*.35,0);g.addColorStop(0,"#6c3f2b");g.addColorStop(.48,"#b8754d");g.addColorStop(1,"#5b2d25");x.beginPath();root.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.strokeStyle=g;x.lineWidth=44;x.stroke();
+x.beginPath();root.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.strokeStyle="#ffd8a243";x.lineWidth=30;x.stroke();
+x.globalAlpha=.33;for(let i=2;i<root.length-2;i+=3){let p=root[i];x.beginPath();x.ellipse(p.x,p.y,16,9,0,0,TAU);x.strokeStyle="#f1b98f";x.lineWidth=1;x.stroke()}x.restore()}
+function drawArb(a){let q=1+Math.sin(t*2.3+a.ph)*.06;x.save();x.translate(a.x,a.y);x.scale(a.s*q,a.s*q);x.strokeStyle="#dcb9ffdc";x.lineWidth=1.1;x.lineCap="round";x.beginPath();x.moveTo(0,8);x.lineTo(0,-4);x.stroke();for(let i=0;i<a.b;i++){let side=i%2?1:-1,y=5-i*1.6,len=5+(i%3)*1.5;x.beginPath();x.moveTo(0,y);x.quadraticCurveTo(side*len*.45,y-3,side*len,y-5.5);x.stroke();x.beginPath();x.moveTo(side*len*.55,y-3.4);x.lineTo(side*len*.85,y-7);x.stroke()}x.restore()}
+function drawHypha(){x.save();x.lineCap="round";x.lineJoin="round";for(let h of hypha){if(h.p.length<2)continue;x.beginPath();h.p.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.strokeStyle="#cd9fff14";x.lineWidth=h.w*6;x.stroke()}
+for(let h of hypha){if(h.p.length<2)continue;let a=h.p[0],b=h.p[h.p.length-1],g=x.createLinearGradient(a.x,a.y,b.x,b.y);g.addColorStop(0,"#f2ddffe6");g.addColorStop(.55,"#c697f4e0");g.addColorStop(1,"#8e6fd6eb");x.beginPath();h.p.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.strokeStyle=g;x.lineWidth=h.w;x.stroke();if(h.alive){let p=b,r=2.5+Math.sin(t*5+h.phase)*.8,gg=x.createRadialGradient(p.x,p.y,0,p.x,p.y,r*4);gg.addColorStop(0,"#f8e8fff2");gg.addColorStop(.3,"#cc9eff88");gg.addColorStop(1,"#0000");x.fillStyle=gg;x.beginPath();x.arc(p.x,p.y,r*4,0,TAU);x.fill()}}x.restore()}
+function along(p,u){if(p.length<2)return p[0]||{x:0,y:0};let f=C(u,0,.999)*(p.length-1),i=Math.floor(f),q=f-i;return{x:L(p[i].x,p[i+1].x,q),y:L(p[i].y,p[i+1].y,q)}}
+function drawFlow(){if(!$("#flow").checked)return;x.save();x.globalCompositeOperation="lighter";for(let h of hypha){if(h.p.length<15)continue;let n=Math.min(4,1+Math.floor(h.p.length/150));for(let i=0;i<n;i++){let out=i%2===0,u=(t*.055*(out?1:-1)+i/n+h.phase)%1;if(u<0)u++;let p=along(h.p,u),col=out?"126,240,194":"255,209,118",g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,7);g.addColorStop(0,`rgba(${col},.95)`);g.addColorStop(.32,`rgba(${col},.38)`);g.addColorStop(1,`rgba(${col},0)`);x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,7,0,TAU);x.fill()}}x.restore()}
+function drawSpores(){if(!$("#spore").checked)return;for(let s of spores){let rr=s.r*(1+Math.sin(t*1.7+s.ph)*.06),g=x.createRadialGradient(s.x-rr*.3,s.y-rr*.35,1,s.x,s.y,rr);g.addColorStop(0,"#ffe7bff2");g.addColorStop(.55,"#cf8850d9");g.addColorStop(1,"#582d25f2");x.fillStyle=g;x.beginPath();x.arc(s.x,s.y,rr,0,TAU);x.fill();x.strokeStyle="#ffe8c273";x.beginPath();x.arc(s.x,s.y,rr*.72,0,TAU);x.stroke()}}
+function draw(){bg();drawNutr();drawRoot();if($("#arb").checked)arb.forEach(drawArb);drawHypha();drawFlow();drawSpores();let v=x.createRadialGradient(W*.52,H*.5,Math.min(W,H)*.2,W*.52,H*.5,Math.max(W,H)*.72);v.addColorStop(.55,"#0000");v.addColorStop(1,"#0008");x.fillStyle=v;x.fillRect(0,0,W,H)}
+function stats(){$("#tips").textContent=hypha.filter(h=>h.alive).length;$("#segments").textContent=hypha.reduce((s,h)=>s+Math.max(0,h.p.length-1),0).toLocaleString("pt-BR");$("#spores").textContent=spores.length;$("#nodes").textContent=nutr.filter(n=>n.life>.08).length}
+function frame(ts){if(!last)last=ts;let dt=Math.min(.033,(ts-last)/1000);last=ts;if(!paused){t+=dt;update(dt)}draw();requestAnimationFrame(frame)}
+function bind(id,out,key,scale,fmt){let e=$(id);let sync=()=>{P[key]=+e.value*scale;$(out).textContent=fmt(e.value)};e.addEventListener("input",sync);sync()}
+bind("#growth","#growthV","growth",1,v=>(+v).toFixed(1)+"×");bind("#branch","#branchV","branch",.01,v=>v+"%");bind("#organic","#organicV","organic",.01,v=>v+"%");bind("#tropism","#tropismV","tropism",.01,v=>v+"%");
+$("#toggle").onclick=()=>{paused=!paused;$("#toggle").textContent=paused?"Continuar":"Pausar";$("#toggle").classList.toggle("primary",!paused)};$("#reset").onclick=reset;
+c.addEventListener("pointerdown",e=>{let r=c.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;if(px>W*.34)addNutrient(px,py)});
+addEventListener("resize",resize,{passive:true});resize();requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
