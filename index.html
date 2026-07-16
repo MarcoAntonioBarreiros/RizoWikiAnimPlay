@@ -26,21 +26,23 @@ h1{margin:6px 0 5px;font-size:clamp(27px,4vw,48px);line-height:.95;letter-spacin
 .workspace{min-height:0;display:grid;grid-template-columns:350px minmax(0,1fr);gap:15px;padding:15px}
 .library,.viewer{min-height:0;border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,var(--panel2),#06120eef);box-shadow:0 24px 80px #0006}
 .library{display:grid;grid-template-rows:auto auto 1fr;overflow:hidden}
-.library-head{padding:16px 16px 10px} .library-head h2{font-size:14px;margin:0 0 8px}
-.filters{display:flex;gap:6px;overflow:auto;padding-bottom:4px}
-.filter{white-space:nowrap;border:1px solid #ffffff14;background:#ffffff08;color:#dff7ea;border-radius:999px;padding:7px 9px;font:inherit;font-size:10px;cursor:pointer}
-.filter.active{background:#8eefb11d;border-color:#8eefb138;color:#baf8d0}
-.search-wrap{padding:0 16px 12px} input{width:100%;border:1px solid #ffffff14;background:#06130fc9;color:#effff6;border-radius:12px;padding:10px 12px;outline:none}
-.cards{padding:0 10px 12px;overflow:auto;display:grid;gap:8px}
-.microbe-card{position:relative;overflow:hidden;text-align:left;border:1px solid #ffffff12;border-radius:15px;padding:12px;background:#ffffff07;color:var(--text);cursor:pointer;transition:.18s}
-.microbe-card:hover{transform:translateY(-1px);background:#ffffff0c}
-.microbe-card.active{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 11%,#07130f)}
+.library-head{padding:20px 20px 12px} .library-head h2{font-size:15px;font-weight:700;margin:0 0 12px}
+.filters{display:flex;gap:8px;overflow:auto;padding-bottom:6px}
+.filter{white-space:nowrap;border:1px solid #ffffff14;background:#ffffff08;color:#dff7ea;border-radius:999px;padding:8px 12px;font:inherit;font-size:11px;font-weight:500;cursor:pointer;transition:.2s}
+.filter:hover{background:#ffffff10}
+.filter.active{background:#8eefb122;border-color:#8eefb144;color:#baf8d0}
+.search-wrap{padding:0 20px 16px} input{width:100%;border:1px solid #ffffff1c;background:#ffffff05;color:#effff6;border-radius:14px;padding:12px 14px;outline:none;font-size:12px;transition:.2s}
+input:focus{border-color:#8eefb166;background:#ffffff0a}
+.cards{padding:0 14px 16px;overflow:auto;display:grid;gap:12px}
+.microbe-card{position:relative;overflow:hidden;text-align:left;border:1px solid #ffffff12;border-radius:18px;padding:16px;background:#ffffff05;color:var(--text);cursor:pointer;transition:.2s}
+.microbe-card:hover{transform:translateY(-2px);background:#ffffff0a}
+.microbe-card.active{border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:color-mix(in srgb,var(--accent) 15%,#07130f);box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 10%,transparent)}
 .card-glow{position:absolute;width:110px;height:110px;right:-40px;top:-45px;border-radius:50%;background:radial-gradient(circle,var(--accent),transparent 68%);opacity:.12}
-.card-top{display:flex;align-items:center;gap:7px;margin-bottom:7px} .organism-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 13px var(--accent)}
-.kind{font-size:9px;color:#c5e1d3;text-transform:uppercase;letter-spacing:.09em}
-.microbe-card strong{display:block;font-size:15px} .microbe-card small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
-.role{display:block;font-size:10px;line-height:1.35;color:#d6eee2;margin-top:8px}
-.signature{display:block;font-size:9px;line-height:1.35;color:#91b5a4;margin-top:5px}
+.card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px} .organism-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+.kind{font-size:10px;color:#c5e1d3;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.microbe-card strong{display:block;font-size:17px;font-weight:700;margin-bottom:4px} .microbe-card small{display:block;color:var(--muted);font-size:12px;margin-bottom:10px}
+.role{display:block;font-size:11px;line-height:1.45;color:#d6eee2;margin-top:10px;border-top:1px solid #ffffff10;padding-top:10px}
+.signature{display:block;font-size:10px;line-height:1.45;color:#91b5a4;margin-top:6px}
 .viewer{display:grid;grid-template-rows:auto minmax(390px,1fr) auto;overflow:hidden}
 .viewer-head{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px 16px;border-bottom:1px solid #ffffff10}
 .title-block{min-width:0} .title-block h2{margin:0;font-size:18px} .title-block p{margin:3px 0 0;font-size:10px;color:var(--muted)}
@@ -234,7 +236,7 @@ function selectById(id){
   document.querySelector("#currentRole").textContent=m.role;
   document.querySelector("#currentSignature").textContent=m.signature;
   document.querySelector("#currentTags").innerHTML=m.mechanics.map(t=>`<span class="tag">${t}</span>`).join("");
-  document.querySelector("#openFull").href=m.file;
+  document.querySelector("#openFull").href="viewer.html?id="+m.id;
   loading.classList.remove("hidden");
   frame.src=m.file;
   const card=cards.find(c=>c.dataset.id===id);
